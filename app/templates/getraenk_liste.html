@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Getränkeliste</title>
+</head>
+<body>
+    <h1>Erfasste Getränke</h1>
+    {% if getraenke %}
+        <ul>
+        {% for g in getraenke %}
+            <li>{{ g.name }} ({{ g.kategorie }}) – {{ "%.2f"|format(g.preis) }} CHF</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Noch keine Getränke erfasst.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('create_getraenk') }}">➕ Neues Getränk erfassen</a><br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

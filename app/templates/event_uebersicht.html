@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Eventübersicht</title>
+</head>
+<body>
+    <h1>Verkäufe pro Teilnehmer</h1>
+
+    <form method="GET">
+        <label for="event_id">Event wählen:</label>
+        <select name="event_id" id="event_id" onchange="this.form.submit()">
+            <option value="">-- wählen --</option>
+            {% for event in events %}
+                <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>
+                    {{ event.name }} – {{ event.datum }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if selected_event_id %}
+        <p>
+            📥 <a href="{{ url_for('export_csv', event_id=selected_event_id) }}">Teilnehmer-Export (CSV)</a><br>
+        </p>
+    {% endif %}
+
+    <p>
+        📊 <a href="{{ url_for('export_umsatz') }}">Gesamt-Umsatzübersicht (CSV)</a>
+    </p>
+
+    {% if daten %}
+        <hr>
+        {% for eintrag in daten %}
+            <h3>{{ eintrag.teilnehmer }} – <small>Status: {{ eintrag.status|capitalize }}</small></h3>
+            {% if eintrag.buchungen %}
+                <ul>
+                {% for buchung in eintrag.buchungen %}
+                    <li>{{ buchung[0] }}: {{ buchung[1] }} Stück – {{ "%.2f"|format(buchung[2]) }} CHF</li>
+                {% endfor %}
+                </ul>
+                <strong>Gesamtsumme: {{ "%.2f"|format(eintrag.gesamt) }} CHF</strong>
+            {% else %}
+                <p><em>Keine Buchungen</em></p>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Getränkeverkauf</title>
+</head>
+<body>
+    <h1>Getränk buchen</h1>
+
+    <form method="GET">
+        <label for="event_id">Event wählen:</label>
+        <select name="event_id" id="event_id" onchange="this.form.submit()">
+            <option value="">-- wählen --</option>
+            {% for event in events %}
+                <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>
+                    {{ event.name }} – {{ event.datum }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if selected_event_id and teilnehmer_events %}
+    <form method="POST">
+        <input type="hidden" name="event_id" value="{{ selected_event_id }}">
+
+        <label for="teilnehmer_event_id">Teilnehmer:</label><br>
+        <select name="teilnehmer_event_id" required>
+            {% for te in teilnehmer_events %}
+                <option value="{{ te.id }}">{{ te.teilnehmer.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="getraenk_id">Getränk:</label><br>
+        <select name="getraenk_id" required>
+            {% for g in getraenke %}
+                <option value="{{ g.id }}">{{ g.name }} – {{ "%.2f"|format(g.preis) }} CHF</option>
+            {% endfor %}
+        </select><br><br>
+
+        <input type="submit" value="Buchen">
+    </form>
+    {% endif %}
+
+    <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

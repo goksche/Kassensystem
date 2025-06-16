@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmerreport</title>
+</head>
+<body>
+    <h1>Teilnehmerauswertung über mehrere Events</h1>
+
+    {% if daten %}
+        {% for eintrag in daten %}
+            <h3>{{ eintrag.teilnehmer }}</h3>
+            {% if eintrag.events %}
+                <ul>
+                {% for e in eintrag.events %}
+                    <li>{{ e[0] }} – {{ e[1] }} Getränke – {{ "%.2f"|format(e[2]) }} CHF</li>
+                {% endfor %}
+                </ul>
+                <strong>Gesamtsumme: {{ "%.2f"|format(eintrag.gesamt) }} CHF</strong>
+            {% else %}
+                <p><em>Keine Buchungen</em></p>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>Keine Teilnehmerdaten vorhanden.</p>
+    {% endif %}
+
+    <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

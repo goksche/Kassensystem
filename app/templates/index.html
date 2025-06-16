@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Kassensystem</title>
+</head>
+<body>
+    <h1>Willkommen zum Kassensystem</h1>
+    <p>Projektstart erfolgreich!</p>
+
+    <h2>Erfasste Events</h2>
+    {% if events %}
+        <ul>
+        {% for event in events %}
+            <li>
+                {{ event.name }} – {{ event.datum }}
+                [<a href="{{ url_for('edit_event', event_id=event.id) }}">bearbeiten</a>]
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Events erfasst.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>🗂 Verwaltung</h2>
+    <ul>
+        <li><a href="{{ url_for('create_event') }}">➕ Neues Event erfassen</a></li>
+        <li><a href="{{ url_for('create_teilnehmer') }}">➕ Teilnehmer erfassen</a></li>
+        <li><a href="{{ url_for('create_getraenk') }}">➕ Getränk erfassen</a></li>
+        <li><a href="{{ url_for('list_getraenke') }}">📋 Getränkeliste anzeigen</a></li>
+    </ul>
+
+    <h2>🛒 Aktionen</h2>
+    <ul>
+        <li><a href="{{ url_for('erfasse_verkauf') }}">🥤 Verkauf erfassen</a></li>
+        <li><a href="{{ url_for('zahlung_verwalten') }}">💰 Zahlungsstatus verwalten</a></li>
+    </ul>
+
+    <h2>📊 Auswertungen</h2>
+    <ul>
+        <li><a href="{{ url_for('event_uebersicht') }}">📈 Teilnehmer-Verbrauch anzeigen (pro Event)</a></li>
+        <li><a href="{{ url_for('teilnehmer_report') }}">📄 Teilnehmerauswertung (mehrere Turniere)</a></li>
+        <li><a href="{{ url_for('teilnehmer_report_export') }}">📥 Teilnehmerreport (CSV)</a></li>
+        <li><a href="{{ url_for('export_umsatz') }}">📥 Umsatzübersicht (CSV)</a></li>
+    </ul>
+</body>
+</html>

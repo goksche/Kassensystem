@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmer erfassen</title>
+</head>
+<body>
+    <h1>Neuen Teilnehmer erfassen</h1>
+    <form method="POST">
+        <label for="name">Teilnehmername:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="event_id">Event auswählen:</label><br>
+        <select id="event_id" name="event_id" required>
+            {% for event in events %}
+            <option value="{{ event.id }}">{{ event.name }} – {{ event.datum }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <input type="submit" value="Teilnehmer hinzufügen">
+    </form>
+    <br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>
