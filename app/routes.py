@@ -34,20 +34,16 @@ def edit_event(event_id):
         db.session.commit()
         return redirect(url_for("index"))
     return render_template("event_edit.html", event=event)
-@app.route("/teilnehmer", methods=["GET", "POST"])
+@app.route("/teilnehmer/neu", methods=["GET", "POST"])
 def create_teilnehmer():
-    events = Event.query.order_by(Event.datum.desc()).all()
     if request.method == "POST":
         name = request.form["name"]
-        event_id = request.form["event_id"]
         teilnehmer = Teilnehmer(name=name)
         db.session.add(teilnehmer)
         db.session.commit()
-        teilnehmer_event = TeilnehmerEvent(teilnehmer_id=teilnehmer.id, event_id=event_id, bezahlt_status="offen")
-        db.session.add(teilnehmer_event)
-        db.session.commit()
         return redirect(url_for("index"))
-    return render_template("teilnehmer_form.html", events=events)
+    return render_template("teilnehmer_create.html")
+
 @app.route("/teilnehmer/edit/<int:teilnehmer_id>", methods=["GET", "POST"])
 def edit_teilnehmer(teilnehmer_id):
     teilnehmer = Teilnehmer.query.get_or_404(teilnehmer_id)
