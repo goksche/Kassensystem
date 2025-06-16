@@ -77,21 +77,29 @@ def list_getraenke():
 @app.route("/verkauf", methods=["GET", "POST"])
 def erfasse_verkauf():
     events = Event.query.order_by(Event.datum.desc()).all()
+    teilnehmer = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
+
     if request.method == "POST":
-        event_id = int(request.form["event_id"])
-        teilnehmer_event_id = int(request.form["teilnehmer_event_id"])
-        getraenk_id = int(request.form["getraenk_id"])
-        verkauf = Verkauf(teilnehmer_event_id=teilnehmer_event_id, getraenk_id=getraenk_id)
-        db.session.add(verkauf)
+        event_id = request.form["event"]
+        teilnehmer_id = request.form["teilnehmer"]
+        getraenk_id = request.form["getraenk"]
+        menge = int(request.form.get("menge", 1))
+
+        teilnehmer_event = TeilnehmerEvent.query.filter_by(event_id=event_id, teilnehmer_id=teilnehmer_id).first()
+        if not teilnehmer_event:
+            teilnehmer_event = TeilnehmerEvent(event_id=event_id, teilnehmer_id=teilnehmer_id, bezahlt_status="offen")
+            db.session.add(teilnehmer_event)
+            db.session.commit()
+
+        for _ in range(menge):
+            verkauf = Verkauf(teilnehmer_event_id=teilnehmer_event.id, getraenk_id=getraenk_id)
+            db.session.add(verkauf)
+
         db.session.commit()
         return redirect(url_for("index"))
 
-    selected_event_id = request.args.get("event_id", type=int)
-    teilnehmer_event_liste = []
-    if selected_event_id:
-        teilnehmer_event_liste = TeilnehmerEvent.query.filter_by(event_id=selected_event_id).all()
-    getraenke = Getraenk.query.all()
-    return render_template("verkauf_form.html", events=events, teilnehmer_events=teilnehmer_event_liste, getraenke=getraenke, selected_event_id=selected_event_id)
+    return render_template("verkauf.html", events=events, teilnehmer=teilnehmer, getraenke=getraenke)
 
 @app.route("/uebersicht")
 def event_uebersicht():
