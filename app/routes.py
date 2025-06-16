@@ -10,7 +10,9 @@ import io
 @app.route("/")
 def index():
     events = Event.query.order_by(Event.datum.desc()).all()
-    return render_template("index.html", events=events)
+    teilnehmer = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
+    return render_template("index.html", events=events, teilnehmer=teilnehmer, getraenke=getraenke)
 
 @app.route("/event", methods=["GET", "POST"])
 def create_event():
@@ -46,7 +48,16 @@ def create_teilnehmer():
         db.session.commit()
         return redirect(url_for("index"))
     return render_template("teilnehmer_form.html", events=events)
+@app.route("/teilnehmer/edit/<int:teilnehmer_id>", methods=["GET", "POST"])
+def edit_teilnehmer(teilnehmer_id):
+    teilnehmer = Teilnehmer.query.get_or_404(teilnehmer_id)
 
+    if request.method == "POST":
+        teilnehmer.name = request.form["name"]
+        db.session.commit()
+        return redirect(url_for("index"))
+
+    return render_template("teilnehmer_edit.html", teilnehmer=teilnehmer)
 @app.route("/getraenk", methods=["GET", "POST"])
 def create_getraenk():
     if request.method == "POST":
@@ -241,3 +252,15 @@ def teilnehmer_report_export():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=teilnehmer_report.csv"}
     )
+@app.route("/getraenk/edit/<int:getraenk_id>", methods=["GET", "POST"])
+def edit_getraenk(getraenk_id):
+    getraenk = Getraenk.query.get_or_404(getraenk_id)
+
+    if request.method == "POST":
+        getraenk.name = request.form["name"]
+        getraenk.preis = float(request.form["preis"])
+        getraenk.kategorie = request.form["kategorie"]
+        db.session.commit()
+        return redirect(url_for("index"))
+
+    return render_template("getraenk_edit.html", getraenk=getraenk)

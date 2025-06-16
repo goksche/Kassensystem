@@ -22,6 +22,30 @@
         <p>Keine Events erfasst.</p>
     {% endif %}
 
+    <h2>Teilnehmer</h2>
+    {% if teilnehmer %}
+        <ul>
+        {% for t in teilnehmer %}
+            <li>{{ t.name }} [<a href="{{ url_for('edit_teilnehmer', teilnehmer_id=t.id) }}">bearbeiten</a>]</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Teilnehmer erfasst.</p>
+    {% endif %}
+
+    <h2>Getränke</h2>
+    {% if getraenke %}
+        <ul>
+        {% for g in getraenke %}
+            <li>{{ g.name }} – {{ "%.2f"|format(g.preis) }} CHF ({{ g.kategorie }})
+                [<a href="{{ url_for('edit_getraenk', getraenk_id=g.id) }}">bearbeiten</a>]
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Getränke erfasst.</p>
+    {% endif %}
+
     <hr>
 
     <h2>🗂 Verwaltung</h2>
@@ -29,7 +53,6 @@
         <li><a href="{{ url_for('create_event') }}">➕ Neues Event erfassen</a></li>
         <li><a href="{{ url_for('create_teilnehmer') }}">➕ Teilnehmer erfassen</a></li>
         <li><a href="{{ url_for('create_getraenk') }}">➕ Getränk erfassen</a></li>
-        <li><a href="{{ url_for('list_getraenke') }}">📋 Getränkeliste anzeigen</a></li>
     </ul>
 
     <h2>🛒 Aktionen</h2>

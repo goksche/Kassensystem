@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Getränk bearbeiten</title>
+</head>
+<body>
+    <h1>Getränk bearbeiten</h1>
+
+    <form method="POST">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" value="{{ getraenk.name }}" required><br><br>
+
+        <label for="preis">Preis (CHF):</label><br>
+        <input type="number" id="preis" name="preis" step="0.05" value="{{ getraenk.preis }}" required><br><br>
+
+        <label for="kategorie">Kategorie:</label><br>
+        <input type="text" id="kategorie" name="kategorie" value="{{ getraenk.kategorie }}"><br><br>
+
+        <input type="submit" value="Speichern">
+    </form>
+
+    <br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>
