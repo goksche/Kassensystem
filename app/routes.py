@@ -264,3 +264,24 @@ def edit_getraenk(getraenk_id):
         return redirect(url_for("index"))
 
     return render_template("getraenk_edit.html", getraenk=getraenk)
+@app.route("/event/<int:event_id>/teilnehmer", methods=["GET", "POST"])
+def zuweise_teilnehmer(event_id):
+    event = Event.query.get_or_404(event_id)
+    alle_teilnehmer = Teilnehmer.query.order_by(Teilnehmer.name).all()
+
+    if request.method == "POST":
+        ausgewaehlt_ids = request.form.getlist("teilnehmer")
+        for teilnehmer in alle_teilnehmer:
+            zuweisung = TeilnehmerEvent.query.filter_by(event_id=event.id, teilnehmer_id=teilnehmer.id).first()
+
+            if str(teilnehmer.id) in ausgewaehlt_ids and not zuweisung:
+                neu = TeilnehmerEvent(event_id=event.id, teilnehmer_id=teilnehmer.id, bezahlt_status="offen")
+                db.session.add(neu)
+            elif str(teilnehmer.id) not in ausgewaehlt_ids and zuweisung:
+                db.session.delete(zuweisung)
+
+        db.session.commit()
+        return redirect(url_for("index"))
+
+    bestehende_ids = [te.teilnehmer_id for te in TeilnehmerEvent.query.filter_by(event_id=event.id).all()]
+    return render_template("event_teilnehmer_zuweisung.html", event=event, teilnehmer=alle_teilnehmer, bestehende_ids=bestehende_ids)

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmer zuweisen</title>
+</head>
+<body>
+    <h1>Teilnehmer zuweisen: {{ event.name }}</h1>
+
+    <form method="POST">
+        {% for t in teilnehmer %}
+            <input type="checkbox" name="teilnehmer" value="{{ t.id }}"
+                   {% if t.id in bestehende_ids %}checked{% endif %}>
+            {{ t.name }}<br>
+        {% endfor %}
+        <br>
+        <input type="submit" value="Speichern">
+    </form>
+
+    <br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

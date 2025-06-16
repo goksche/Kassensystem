@@ -15,6 +15,7 @@
             <li>
                 {{ event.name }} – {{ event.datum }}
                 [<a href="{{ url_for('edit_event', event_id=event.id) }}">bearbeiten</a>]
+                [<a href="{{ url_for('zuweise_teilnehmer', event_id=event.id) }}">Teilnehmer zuweisen</a>]
             </li>
         {% endfor %}
         </ul>
