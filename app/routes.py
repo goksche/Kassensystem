@@ -1,6 +1,7 @@
+from .models import Ausgabe
 from flask import render_template, request, redirect, url_for, Response
 from flask import current_app as app
-from .models import Event, Teilnehmer, TeilnehmerEvent, Getraenk, Verkauf
+from .models import Event, Teilnehmer, TeilnehmerEvent, Getraenk, Verkauf, Ausgabe, Einnahme
 from .database import db
 from datetime import datetime
 from sqlalchemy import func
@@ -877,4 +878,241 @@ def export_teilnehmerliste_event_pdf():
     response = make_response(pdf_puffer.getvalue())
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=teilnehmerliste_event_{event_id}.pdf'
+    return response
+@app.route("/ausgaben", methods=["GET", "POST"])
+def erfasse_ausgabe():
+    events = Event.query.order_by(Event.datum.desc()).all()
+
+    if request.method == "POST":
+        event_id = request.form["event_id"]
+        betrag = float(request.form["betrag"])
+        kategorie = request.form["kategorie"]
+        beschreibung = request.form["beschreibung"]
+        datum = datetime.strptime(request.form["datum"], "%Y-%m-%d").date()
+
+        neue_ausgabe = Ausgabe(
+            event_id=event_id,
+            betrag=betrag,
+            kategorie=kategorie,
+            beschreibung=beschreibung,
+            datum=datum
+        )
+        db.session.add(neue_ausgabe)
+        db.session.commit()
+        return redirect(url_for("erfasse_ausgabe"))
+
+    ausgaben = (
+        db.session.query(Ausgabe, Event.name)
+        .join(Event, Ausgabe.event_id == Event.id)
+        .order_by(Ausgabe.datum.desc())
+        .all()
+    )
+
+    return render_template("ausgabe_form.html", events=events, ausgaben=ausgaben)
+@app.route("/auswertung/endabrechnung_event")
+def endabrechnung_event():
+    events = Event.query.order_by(Event.datum.desc()).all()
+    selected_event_id = request.args.get("event_id", type=int)
+    daten = {}
+
+    if selected_event_id:
+        event = Event.query.get_or_404(selected_event_id)
+
+        # Getränkeumsatz
+        umsatz = (
+            db.session.query(func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.event_id == selected_event_id)
+            .scalar() or 0.0
+        )
+
+        # Einnahmen
+        einnahmen = (
+            db.session.query(func.sum(Einnahme.betrag))
+            .filter(Einnahme.event_id == selected_event_id)
+            .scalar() or 0.0
+        )
+
+        # Ausgaben (Details + Summe)
+        ausgaben = (
+            db.session.query(Ausgabe.kategorie, Ausgabe.beschreibung, Ausgabe.betrag)
+            .filter(Ausgabe.event_id == selected_event_id)
+            .order_by(Ausgabe.datum)
+            .all()
+        )
+        summe_ausgaben = sum(ausgabe[2] for ausgabe in ausgaben)
+
+        # Ergebnis
+        gewinn = einnahmen + umsatz - summe_ausgaben
+
+        daten = {
+            "event": event,
+            "umsatz": umsatz,
+            "einnahmen": einnahmen,
+            "ausgaben": ausgaben,
+            "summe_ausgaben": summe_ausgaben,
+            "gewinn": gewinn
+        }
+
+    return render_template("endabrechnung_event.html", events=events, selected_event_id=selected_event_id, daten=daten)
+@app.route("/auswertung/endabrechnung_jahr")
+def endabrechnung_jahr():
+    # Alle Jahre mit Verkäufen
+    jahre = (
+        db.session.query(func.strftime('%Y', Event.datum))
+        .group_by(func.strftime('%Y', Event.datum))
+        .order_by(func.strftime('%Y', Event.datum))
+        .all()
+    )
+
+    daten = []
+
+    for jahr_tuple in jahre:
+        jahr = jahr_tuple[0]
+
+        # Alle Events des Jahres
+        events = (
+            db.session.query(Event.id)
+            .filter(func.strftime('%Y', Event.datum) == jahr)
+            .all()
+        )
+        event_ids = [e.id for e in events]
+
+        # Getränkeumsatz
+        umsatz = (
+            db.session.query(func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        # Einnahmen
+        einnahmen = (
+            db.session.query(func.sum(Einnahme.betrag))
+            .filter(Einnahme.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        # Ausgaben
+        ausgaben = (
+            db.session.query(func.sum(Ausgabe.betrag))
+            .filter(Ausgabe.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        gewinn = einnahmen + umsatz - ausgaben
+
+        daten.append({
+            "jahr": jahr,
+            "umsatz": umsatz,
+            "einnahmen": einnahmen,
+            "ausgaben": ausgaben,
+            "gewinn": gewinn
+        })
+
+    return render_template("endabrechnung_jahr.html", daten=daten)
+@app.route("/export/endabrechnung_event/pdf")
+def export_endabrechnung_event_pdf():
+    event_id = request.args.get("event_id", type=int)
+    if not event_id:
+        return redirect(url_for("endabrechnung_event"))
+
+    event = Event.query.get_or_404(event_id)
+
+    # Getränkeumsatz
+    umsatz = (
+        db.session.query(func.sum(Getraenk.preis))
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .filter(TeilnehmerEvent.event_id == event_id)
+        .scalar() or 0.0
+    )
+
+    # Einnahmen
+    einnahmen = (
+        db.session.query(func.sum(Einnahme.betrag))
+        .filter(Einnahme.event_id == event_id)
+        .scalar() or 0.0
+    )
+
+    # Ausgaben
+    ausgaben = (
+        db.session.query(Ausgabe.kategorie, Ausgabe.beschreibung, Ausgabe.betrag)
+        .filter(Ausgabe.event_id == event_id)
+        .order_by(Ausgabe.datum)
+        .all()
+    )
+    summe_ausgaben = sum(a[2] for a in ausgaben)
+    gewinn = einnahmen + umsatz - summe_ausgaben
+
+    html = render_template("endabrechnung_event_pdf.html", event=event, umsatz=umsatz, einnahmen=einnahmen, ausgaben=ausgaben, summe_ausgaben=summe_ausgaben, gewinn=gewinn)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=endabrechnung_event_{event_id}.pdf'
+    return response
+@app.route("/export/endabrechnung_jahr/pdf")
+def export_endabrechnung_jahr_pdf():
+    jahre = (
+        db.session.query(func.strftime('%Y', Event.datum))
+        .group_by(func.strftime('%Y', Event.datum))
+        .order_by(func.strftime('%Y', Event.datum))
+        .all()
+    )
+
+    daten = []
+
+    for jahr_tuple in jahre:
+        jahr = jahr_tuple[0]
+        event_ids = [e.id for e in Event.query.filter(func.strftime('%Y', Event.datum) == jahr).all()]
+
+        umsatz = (
+            db.session.query(func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        einnahmen = (
+            db.session.query(func.sum(Einnahme.betrag))
+            .filter(Einnahme.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        ausgaben = (
+            db.session.query(func.sum(Ausgabe.betrag))
+            .filter(Ausgabe.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+
+        gewinn = einnahmen + umsatz - ausgaben
+
+        daten.append({
+            "jahr": jahr,
+            "umsatz": umsatz,
+            "einnahmen": einnahmen,
+            "ausgaben": ausgaben,
+            "gewinn": gewinn
+        })
+
+    html = render_template("endabrechnung_jahr_pdf.html", daten=daten)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=endabrechnung_pro_jahr.pdf'
     return response

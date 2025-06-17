@@ -71,6 +71,7 @@
     <ul>
         <li><a href="{{ url_for('erfasse_verkauf') }}">🥤 Verkauf erfassen</a></li>
         <li><a href="{{ url_for('zahlung_verwalten') }}">💰 Zahlungsstatus verwalten</a></li>
+        <li><a href="{{ url_for('erfasse_ausgabe') }}">📤 Ausgaben erfassen</a></li>
     </ul>
 
     <h2>📊 Auswertungen</h2>
@@ -94,6 +95,8 @@
         <li><a href="{{ url_for('export_getraenkestatistik_pdf') }}">📄 Getränkestatistik (PDF)</a></li>
         <li><a href="{{ url_for('export_verbrauch_pro_teilnehmer_pdf') }}">📄 Verbrauch pro Teilnehmer (PDF)</a></li>
         <li><a href="{{ url_for('export_teilnehmerliste_pdf') }}">📄 Teilnehmerliste (PDF)</a></li>
+        <li><a href="{{ url_for('endabrechnung_event') }}">🧾 Endabrechnung pro Event</a></li>
+        <li><a href="{{ url_for('endabrechnung_jahr') }}">📆 Endabrechnung pro Jahr</a></li>
 
     </ul>
 </body>
