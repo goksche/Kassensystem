@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Verbrauch pro Teilnehmer</title>
+</head>
+<body>
+    <h1>Verbrauch pro Teilnehmer</h1>
+
+    {% for eintrag in daten %}
+        <h2>{{ eintrag.teilnehmer }}</h2>
+        <p><strong>Gesamtumsatz:</strong> {{ "%.2f"|format(eintrag.gesamt) }} CHF</p>
+
+        <h3>Nach Jahr</h3>
+        <ul>
+            {% for jahr, betrag in eintrag.jahre %}
+                <li>{{ jahr }}: {{ "%.2f"|format(betrag) }} CHF</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Nach Event</h3>
+        <ul>
+            {% for eventname, betrag in eintrag.events %}
+                <li>{{ eventname }}: {{ "%.2f"|format(betrag) }} CHF</li>
+            {% endfor %}
+        </ul>
+
+        <hr>
+    {% endfor %}
+
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

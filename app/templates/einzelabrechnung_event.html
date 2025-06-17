@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Einzelabrechnung pro Teilnehmer</title>
+</head>
+<body>
+    <h1>Einzelabrechnung pro Teilnehmer</h1>
+
+    <form method="get" action="{{ url_for('einzelabrechnung_event') }}">
+        <label for="event">Event auswählen:</label>
+        <select name="event_id" id="event" onchange="this.form.submit()">
+            <option value="">-- bitte wählen --</option>
+            {% for event in events %}
+                <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>{{ event.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if daten %}
+        {% for eintrag in daten %}
+            <h2>{{ eintrag.teilnehmer }} (Status: {{ eintrag.status }})</h2>
+            <table border="1" cellpadding="6">
+                <tr>
+                    <th>Getränk</th>
+                    <th>Anzahl</th>
+                    <th>Einzelpreis</th>
+                    <th>Zwischensumme</th>
+                </tr>
+                {% for getraenk, menge, preis, summe in eintrag.buchungen %}
+                <tr>
+                    <td>{{ getraenk }}</td>
+                    <td>{{ menge }}</td>
+                    <td>{{ "%.2f"|format(preis) }}</td>
+                    <td>{{ "%.2f"|format(summe) }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="3"><strong>Gesamt</strong></td>
+                    <td><strong>{{ "%.2f"|format(eintrag.gesamt) }}</strong></td>
+                </tr>
+            </table>
+            <hr>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

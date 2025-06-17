@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Umsatz pro Teilnehmer</title>
+</head>
+<body>
+    <h1>Umsatzübersicht pro Teilnehmer</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Teilnehmer</th>
+            <th>Umsatz (CHF)</th>
+        </tr>
+        {% for name, betrag in daten %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ "%.2f"|format(betrag) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{{ url_for('export_umsatz_pro_teilnehmer_csv') }}">📥 CSV-Export</a>
+    <br><br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

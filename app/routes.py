@@ -289,3 +289,295 @@ def zuweise_teilnehmer(event_id):
 
     bestehende_ids = [te.teilnehmer_id for te in TeilnehmerEvent.query.filter_by(event_id=event.id).all()]
     return render_template("event_teilnehmer_zuweisung.html", event=event, teilnehmer=alle_teilnehmer, bestehende_ids=bestehende_ids)
+@app.route("/auswertung/umsatz_jahr")
+def umsatz_pro_jahr():
+    daten = (
+        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by("jahr")
+        .order_by("jahr")
+        .all()
+    )
+    return render_template("umsatz_jahr.html", daten=daten)
+
+@app.route("/auswertung/umsatz_jahr/export_csv")
+def export_umsatz_pro_jahr_csv():
+    daten = (
+        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by("jahr")
+        .order_by("jahr")
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Jahr", "Umsatz CHF"])
+
+    for row in daten:
+        writer.writerow([row[0], f"{row[1]:.2f}"])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=umsatz_pro_jahr.csv"}
+    )
+@app.route("/auswertung/umsatz_teilnehmer")
+def umsatz_pro_teilnehmer():
+    daten = (
+        db.session.query(Teilnehmer.name, func.sum(Getraenk.preis))
+        .join(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Teilnehmer.id)
+        .order_by(func.sum(Getraenk.preis).desc())
+        .all()
+    )
+    return render_template("umsatz_teilnehmer.html", daten=daten)
+
+@app.route("/auswertung/umsatz_teilnehmer/export_csv")
+def export_umsatz_pro_teilnehmer_csv():
+    daten = (
+        db.session.query(Teilnehmer.name, func.sum(Getraenk.preis))
+        .join(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Teilnehmer.id)
+        .order_by(func.sum(Getraenk.preis).desc())
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Teilnehmer", "Umsatz CHF"])
+
+    for row in daten:
+        writer.writerow([row[0], f"{row[1]:.2f}"])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=umsatz_pro_teilnehmer.csv"}
+    )
+@app.route("/auswertung/getraenkestatistik")
+def getraenkestatistik():
+    daten = (
+        db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Getraenk.id)
+        .order_by(func.count(Verkauf.id).desc())
+        .all()
+    )
+    return render_template("getraenkestatistik.html", daten=daten)
+
+@app.route("/auswertung/getraenkestatistik/export_csv")
+def export_getraenkestatistik_csv():
+    daten = (
+        db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Getraenk.id)
+        .order_by(func.count(Verkauf.id).desc())
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Getränk", "Anzahl verkauft", "Umsatz CHF"])
+
+    for row in daten:
+        writer.writerow([row[0], row[1], f"{row[2]:.2f}"])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=getraenkestatistik.csv"}
+    )
+@app.route("/auswertung/verbrauch_pro_teilnehmer")
+def verbrauch_pro_teilnehmer():
+    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    daten = []
+
+    for t in teilnehmer_liste:
+        # Gesamtverbrauch
+        gesamt = (
+            db.session.query(func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .scalar() or 0.0
+        )
+
+        # Jahresverbrauch
+        jahre = (
+            db.session.query(func.strftime('%Y', Verkauf.zeitpunkt), func.sum(Getraenk.preis))
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .group_by(func.strftime('%Y', Verkauf.zeitpunkt))
+            .order_by(func.strftime('%Y', Verkauf.zeitpunkt))
+            .all()
+        )
+
+        # Eventverbrauch
+        events = (
+            db.session.query(Event.name, func.sum(Getraenk.preis))
+            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
+            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .group_by(Event.name)
+            .order_by(Event.datum)
+            .all()
+        )
+
+        daten.append({
+            "teilnehmer": t.name,
+            "gesamt": gesamt,
+            "jahre": jahre,
+            "events": events
+        })
+
+    return render_template("verbrauch_teilnehmer.html", daten=daten)
+@app.route("/auswertung/teilnehmerliste")
+def teilnehmerliste():
+    daten = (
+        db.session.query(Teilnehmer.name, func.count(TeilnehmerEvent.id))
+        .outerjoin(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .group_by(Teilnehmer.id)
+        .order_by(Teilnehmer.name)
+        .all()
+    )
+    return render_template("teilnehmerliste.html", daten=daten)
+
+@app.route("/auswertung/teilnehmerliste/export_csv")
+def export_teilnehmerliste_csv():
+    daten = (
+        db.session.query(Teilnehmer.name, func.count(TeilnehmerEvent.id))
+        .outerjoin(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .group_by(Teilnehmer.id)
+        .order_by(Teilnehmer.name)
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Teilnehmer", "Teilnahmen"])
+
+    for row in daten:
+        writer.writerow([row[0], row[1]])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=teilnehmerliste.csv"}
+    )
+@app.route("/auswertung/teilnehmerliste_event")
+def teilnehmerliste_pro_event():
+    events = Event.query.order_by(Event.datum.desc()).all()
+    selected_event_id = request.args.get("event_id", type=int)
+    daten = []
+
+    if selected_event_id:
+        daten = (
+            db.session.query(Teilnehmer.name, TeilnehmerEvent.bezahlt_status)
+            .join(Teilnehmer, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+            .filter(TeilnehmerEvent.event_id == selected_event_id)
+            .order_by(Teilnehmer.name)
+            .all()
+        )
+
+    return render_template("teilnehmerliste_event.html", events=events, daten=daten, selected_event_id=selected_event_id)
+
+@app.route("/auswertung/teilnehmerliste_event/export_csv")
+def export_teilnehmerliste_event_csv():
+    event_id = request.args.get("event_id", type=int)
+    if not event_id:
+        return redirect(url_for("teilnehmerliste_pro_event"))
+
+    daten = (
+        db.session.query(Teilnehmer.name, TeilnehmerEvent.bezahlt_status)
+        .join(Teilnehmer, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .filter(TeilnehmerEvent.event_id == event_id)
+        .order_by(Teilnehmer.name)
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Teilnehmer", "Bezahlstatus"])
+
+    for row in daten:
+        writer.writerow([row[0], row[1]])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=teilnehmer_event_{event_id}.csv"}
+    )
+@app.route("/auswertung/einzelabrechnung_event")
+def einzelabrechnung_event():
+    events = Event.query.order_by(Event.datum.desc()).all()
+    selected_event_id = request.args.get("event_id", type=int)
+    daten = []
+
+    if selected_event_id:
+        teilnehmer_events = TeilnehmerEvent.query.filter_by(event_id=selected_event_id).all()
+
+        for te in teilnehmer_events:
+            buchungen = (
+                db.session.query(Getraenk.name, func.count(Verkauf.id), Getraenk.preis, func.sum(Getraenk.preis))
+                .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+                .filter(Verkauf.teilnehmer_event_id == te.id)
+                .group_by(Getraenk.name)
+                .all()
+            )
+
+            gesamtbetrag = sum(row[3] or 0 for row in buchungen)
+
+            daten.append({
+                "teilnehmer": te.teilnehmer.name,
+                "buchungen": buchungen,
+                "gesamt": gesamtbetrag,
+                "status": te.bezahlt_status
+            })
+
+    return render_template("einzelabrechnung_event.html", events=events, daten=daten, selected_event_id=selected_event_id)
+@app.route("/auswertung/umsatzverlauf")
+def umsatzverlauf():
+    daten = (
+        db.session.query(func.date(Verkauf.zeitpunkt), func.sum(Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(func.date(Verkauf.zeitpunkt))
+        .order_by(func.date(Verkauf.zeitpunkt))
+        .all()
+    )
+    return render_template("umsatzverlauf.html", daten=daten)
+
+@app.route("/auswertung/umsatzverlauf/export_csv")
+def export_umsatzverlauf_csv():
+    daten = (
+        db.session.query(func.date(Verkauf.zeitpunkt), func.sum(Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(func.date(Verkauf.zeitpunkt))
+        .order_by(func.date(Verkauf.zeitpunkt))
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Datum", "Umsatz CHF"])
+
+    for row in daten:
+        writer.writerow([row[0], f"{row[1]:.2f}"])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=umsatzverlauf.csv"}
+    )

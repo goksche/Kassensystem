@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmerliste</title>
+</head>
+<body>
+    <h1>Teilnehmerliste</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Name</th>
+            <th>Anzahl Teilnahmen</th>
+        </tr>
+        {% for name, teilnahmen in daten %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ teilnahmen }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{{ url_for('export_teilnehmerliste_csv') }}">📥 CSV-Export</a>
+    <br><br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

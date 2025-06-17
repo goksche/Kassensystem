@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmer pro Event</title>
+</head>
+<body>
+    <h1>Teilnehmerliste pro Event</h1>
+
+    <form method="get" action="{{ url_for('teilnehmerliste_pro_event') }}">
+        <label for="event">Event auswählen:</label>
+        <select name="event_id" id="event" onchange="this.form.submit()">
+            <option value="">-- bitte wählen --</option>
+            {% for event in events %}
+                <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>{{ event.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if daten %}
+        <h2>Teilnehmer</h2>
+        <table border="1" cellpadding="6">
+            <tr>
+                <th>Name</th>
+                <th>Bezahlstatus</th>
+            </tr>
+            {% for name, status in daten %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ status }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <a href="{{ url_for('export_teilnehmerliste_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a>
+    {% endif %}
+
+    <br><br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>

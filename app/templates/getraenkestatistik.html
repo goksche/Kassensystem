@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Getränkestatistik</title>
+</head>
+<body>
+    <h1>Getränkestatistik (gesamt)</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Getränk</th>
+            <th>Anzahl</th>
+            <th>Umsatz (CHF)</th>
+        </tr>
+        {% for name, anzahl, betrag in daten %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ anzahl }}</td>
+            <td>{{ "%.2f"|format(betrag) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{{ url_for('export_getraenkestatistik_csv') }}">📥 CSV-Export</a>
+    <br><br>
+    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</body>
+</html>
