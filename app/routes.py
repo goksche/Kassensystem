@@ -581,3 +581,300 @@ def export_umsatzverlauf_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=umsatzverlauf.csv"}
     )
+from flask import make_response, render_template, request, redirect, url_for
+import io
+from xhtml2pdf import pisa
+
+@app.route("/auswertung/einzelabrechnung_event/pdf")
+def einzelabrechnung_event_pdf():
+    event_id = request.args.get("event_id", type=int)
+    if not event_id:
+        return redirect(url_for("einzelabrechnung_event"))
+
+    event = Event.query.get_or_404(event_id)
+    teilnehmer_events = TeilnehmerEvent.query.filter_by(event_id=event.id).all()
+    daten = []
+
+    for te in teilnehmer_events:
+        buchungen = (
+            db.session.query(Getraenk.name, func.count(Verkauf.id), Getraenk.preis, func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .filter(Verkauf.teilnehmer_event_id == te.id)
+            .group_by(Getraenk.name)
+            .all()
+        )
+
+        gesamtbetrag = sum(row[3] or 0 for row in buchungen)
+
+        daten.append({
+            "teilnehmer": te.teilnehmer.name,
+            "buchungen": buchungen,
+            "gesamt": gesamtbetrag,
+            "status": te.bezahlt_status
+        })
+
+    # Render HTML für PDF
+    html = render_template("einzelabrechnung_pdf.html", event=event, daten=daten)
+
+    # PDF in Memory-Puffer schreiben
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    # Response mit PDF-Inhalt zurückgeben
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=einzelabrechnung_event_{event.id}.pdf'
+    return response
+@app.route("/teilnehmerreport/pdf")
+def teilnehmer_report_pdf():
+    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    daten = []
+
+    for t in teilnehmer_liste:
+        teilnahmen = (
+            db.session.query(Event.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
+            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
+            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Getraenk.id == Verkauf.getraenk_id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .group_by(Event.name)
+            .all()
+        )
+        gesamt = sum(row[2] or 0 for row in teilnahmen)
+        daten.append({
+            "teilnehmer": t.name,
+            "events": teilnahmen,
+            "gesamt": gesamt
+        })
+
+    html = render_template("teilnehmerreport_pdf.html", daten=daten)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=teilnehmerreport.pdf'
+    return response
+@app.route("/export/umsatz/pdf")
+def export_umsatz_pdf():
+    events = Event.query.order_by(Event.datum).all()
+    daten = []
+    gesamtumsatz = 0.0
+
+    for event in events:
+        verkaufsdaten = (
+            db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.event_id == event.id)
+            .group_by(Getraenk.name)
+            .all()
+        )
+        summe_event = sum(row[2] or 0 for row in verkaufsdaten)
+        gesamtumsatz += summe_event
+
+        daten.append({
+            "event": event,
+            "verkauf": verkaufsdaten,
+            "summe": summe_event
+        })
+
+    html = render_template("umsatz_pro_event_pdf.html", daten=daten, gesamtumsatz=gesamtumsatz)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=umsatz_pro_event.pdf'
+    return response
+@app.route("/export/umsatz_jahr/pdf")
+def export_umsatz_pro_jahr_pdf():
+    daten = (
+        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by("jahr")
+        .order_by("jahr")
+        .all()
+    )
+
+    gesamtumsatz = sum(row[1] or 0 for row in daten)
+
+    html = render_template("umsatz_pro_jahr_pdf.html", daten=daten, gesamtumsatz=gesamtumsatz)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=umsatz_pro_jahr.pdf'
+    return response
+@app.route("/export/umsatz_teilnehmer/pdf")
+def export_umsatz_pro_teilnehmer_pdf():
+    daten = (
+        db.session.query(Teilnehmer.name, func.sum(Getraenk.preis))
+        .join(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Teilnehmer.id)
+        .order_by(func.sum(Getraenk.preis).desc())
+        .all()
+    )
+
+    gesamtumsatz = sum(row[1] or 0 for row in daten)
+
+    html = render_template("umsatz_pro_teilnehmer_pdf.html", daten=daten, gesamtumsatz=gesamtumsatz)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=umsatz_pro_teilnehmer.pdf'
+    return response
+@app.route("/export/getraenkestatistik/pdf")
+def export_getraenkestatistik_pdf():
+    daten = (
+        db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Getraenk.id)
+        .order_by(func.count(Verkauf.id).desc())
+        .all()
+    )
+
+    gesamtumsatz = sum(row[2] or 0 for row in daten)
+
+    html = render_template("getraenkestatistik_pdf.html", daten=daten, gesamtumsatz=gesamtumsatz)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=getraenkestatistik.pdf'
+    return response
+@app.route("/export/verbrauch_teilnehmer/pdf")
+def export_verbrauch_pro_teilnehmer_pdf():
+    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    daten = []
+
+    for t in teilnehmer_liste:
+        # Gesamtverbrauch
+        gesamt = (
+            db.session.query(func.sum(Getraenk.preis))
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .scalar() or 0.0
+        )
+
+        # Jahresverbrauch
+        jahre = (
+            db.session.query(func.strftime('%Y', Verkauf.zeitpunkt), func.sum(Getraenk.preis))
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .group_by(func.strftime('%Y', Verkauf.zeitpunkt))
+            .order_by(func.strftime('%Y', Verkauf.zeitpunkt))
+            .all()
+        )
+
+        # Eventverbrauch
+        events = (
+            db.session.query(Event.name, func.sum(Getraenk.preis))
+            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
+            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
+            .group_by(Event.name)
+            .order_by(Event.datum)
+            .all()
+        )
+
+        daten.append({
+            "teilnehmer": t.name,
+            "gesamt": gesamt,
+            "jahre": jahre,
+            "events": events
+        })
+
+    html = render_template("verbrauch_pro_teilnehmer_pdf.html", daten=daten)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=verbrauch_pro_teilnehmer.pdf'
+    return response
+@app.route("/export/teilnehmerliste/pdf")
+def export_teilnehmerliste_pdf():
+    daten = (
+        db.session.query(Teilnehmer.name, func.count(TeilnehmerEvent.id))
+        .outerjoin(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .group_by(Teilnehmer.id)
+        .order_by(Teilnehmer.name)
+        .all()
+    )
+
+    html = render_template("teilnehmerliste_pdf.html", daten=daten)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=teilnehmerliste.pdf'
+    return response
+@app.route("/export/teilnehmerliste_event/pdf")
+def export_teilnehmerliste_event_pdf():
+    event_id = request.args.get("event_id", type=int)
+    if not event_id:
+        return redirect(url_for('teilnehmerliste_pro_event'))
+
+    event = Event.query.get_or_404(event_id)
+    daten = (
+        db.session.query(Teilnehmer.name, TeilnehmerEvent.bezahlt_status)
+        .join(Teilnehmer, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
+        .filter(TeilnehmerEvent.event_id == event_id)
+        .order_by(Teilnehmer.name)
+        .all()
+    )
+
+    html = render_template("teilnehmerliste_pro_event_pdf.html", event=event, daten=daten)
+
+    pdf_puffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
+
+    if pisa_status.err:
+        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
+
+    response = make_response(pdf_puffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=teilnehmerliste_event_{event_id}.pdf'
+    return response

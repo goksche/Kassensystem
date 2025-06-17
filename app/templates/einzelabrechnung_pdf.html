@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; }
+        h1, h2 { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #444; padding: 5px; }
+        th { background-color: #eee; }
+        hr { margin: 20px 0; }
+    </style>
+    <title>Einzelabrechnung – {{ event.name }}</title>
+</head>
+<body>
+    <h1>Einzelabrechnung – {{ event.name }}</h1>
+    <p>Datum: {{ event.datum.strftime('%d.%m.%Y') }}</p>
+
+    {% for eintrag in daten %}
+        <h2>{{ eintrag.teilnehmer }} (Status: {{ eintrag.status }})</h2>
+        <table>
+            <tr>
+                <th>Getränk</th>
+                <th>Anzahl</th>
+                <th>Einzelpreis</th>
+                <th>Zwischensumme</th>
+            </tr>
+            {% for getraenk, menge, preis, summe in eintrag.buchungen %}
+            <tr>
+                <td>{{ getraenk }}</td>
+                <td>{{ menge }}</td>
+                <td>{{ "%.2f"|format(preis) }} CHF</td>
+                <td>{{ "%.2f"|format(summe) }} CHF</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="3"><strong>Gesamt</strong></td>
+                <td><strong>{{ "%.2f"|format(eintrag.gesamt) }} CHF</strong></td>
+            </tr>
+        </table>
+        <hr>
+    {% endfor %}
+</body>
+</html>

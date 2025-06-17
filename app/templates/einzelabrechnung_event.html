@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Einzelabrechnung pro Teilnehmer</title>
 </head>
+{% if selected_event_id %}
+    <a href="{{ url_for('einzelabrechnung_event_pdf', event_id=selected_event_id) }}" target="_blank">📄 PDF-Export</a>
+{% endif %}
 <body>
     <h1>Einzelabrechnung pro Teilnehmer</h1>
 

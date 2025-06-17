@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; }
+        h1, h2 { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #444; padding: 5px; }
+        th { background-color: #eee; }
+        hr { margin: 20px 0; }
+    </style>
+    <title>Teilnehmerreport</title>
+</head>
+<body>
+    <h1>Teilnehmerreport</h1>
+
+    {% for eintrag in daten %}
+        <h2>{{ eintrag.teilnehmer }}</h2>
+        <table>
+            <tr>
+                <th>Event</th>
+                <th>Anzahl Getränke</th>
+                <th>Summe (CHF)</th>
+            </tr>
+            {% for eventname, anzahl, betrag in eintrag.events %}
+            <tr>
+                <td>{{ eventname }}</td>
+                <td>{{ anzahl }}</td>
+                <td>{{ "%.2f"|format(betrag or 0) }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="2"><strong>Gesamt</strong></td>
+                <td><strong>{{ "%.2f"|format(eintrag.gesamt) }}</strong></td>
+            </tr>
+        </table>
+        <hr>
+    {% endfor %}
+</body>
+</html>

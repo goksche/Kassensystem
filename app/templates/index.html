@@ -19,6 +19,17 @@
             </li>
         {% endfor %}
         </ul>
+
+        <h3>📄 Einzelabrechnung als PDF</h3>
+        <form method="get" action="{{ url_for('einzelabrechnung_event_pdf') }}">
+            <label for="event_id">Event auswählen:</label>
+            <select name="event_id" id="event_id">
+                {% for event in events %}
+                    <option value="{{ event.id }}">{{ event.name }} ({{ event.datum.strftime('%d.%m.%Y') }})</option>
+                {% endfor %}
+            </select>
+            <button type="submit">📥 PDF erstellen</button>
+        </form>
     {% else %}
         <p>Keine Events erfasst.</p>
     {% endif %}
@@ -76,6 +87,13 @@
         <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">📋 Teilnehmerliste pro Event</a></li>
         <li><a href="{{ url_for('einzelabrechnung_event') }}">💳 Einzelabrechnung pro Teilnehmer (Event)</a></li>
         <li><a href="{{ url_for('umsatzverlauf') }}">📅 Umsatzverlauf (täglich)</a></li>
+        <li><a href="{{ url_for('teilnehmer_report_pdf') }}">📄 Teilnehmerreport (PDF)</a></li>
+        <li><a href="{{ url_for('export_umsatz_pdf') }}">📄 Umsatz pro Event (PDF)</a></li>
+        <li><a href="{{ url_for('export_umsatz_pro_jahr_pdf') }}">📄 Umsatz pro Jahr (PDF)</a></li>
+        <li><a href="{{ url_for('export_umsatz_pro_teilnehmer_pdf') }}">📄 Umsatz pro Teilnehmer (PDF)</a></li>
+        <li><a href="{{ url_for('export_getraenkestatistik_pdf') }}">📄 Getränkestatistik (PDF)</a></li>
+        <li><a href="{{ url_for('export_verbrauch_pro_teilnehmer_pdf') }}">📄 Verbrauch pro Teilnehmer (PDF)</a></li>
+        <li><a href="{{ url_for('export_teilnehmerliste_pdf') }}">📄 Teilnehmerliste (PDF)</a></li>
 
     </ul>
 </body>

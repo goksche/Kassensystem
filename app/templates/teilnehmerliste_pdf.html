@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; }
+        h1 { margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #444; padding: 5px; }
+        th { background-color: #eee; }
+    </style>
+    <title>Teilnehmerliste</title>
+</head>
+<body>
+    <h1>Teilnehmerliste</h1>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Anzahl Teilnahmen</th>
+        </tr>
+        {% for name, teilnahmen in daten %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ teilnahmen }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
