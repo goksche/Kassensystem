@@ -2,102 +2,52 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Kassensystem</title>
+    <title>Dartkassensystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Willkommen zum Kassensystem</h1>
-    <p>Projektstart erfolgreich!</p>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <h2>Erfasste Events</h2>
-    {% if events %}
-        <ul>
-        {% for event in events %}
-            <li>
-                {{ event.name }} – {{ event.datum }}
-                [<a href="{{ url_for('edit_event', event_id=event.id) }}">bearbeiten</a>]
-                [<a href="{{ url_for('zuweise_teilnehmer', event_id=event.id) }}">Teilnehmer zuweisen</a>]
-            </li>
-        {% endfor %}
-        </ul>
+    <div class="max-w-5xl mx-auto px-4 py-10">
 
-        <h3>📄 Einzelabrechnung als PDF</h3>
-        <form method="get" action="{{ url_for('einzelabrechnung_event_pdf') }}">
-            <label for="event_id">Event auswählen:</label>
-            <select name="event_id" id="event_id">
-                {% for event in events %}
-                    <option value="{{ event.id }}">{{ event.name }} ({{ event.datum.strftime('%d.%m.%Y') }})</option>
-                {% endfor %}
-            </select>
-            <button type="submit">📥 PDF erstellen</button>
-        </form>
-    {% else %}
-        <p>Keine Events erfasst.</p>
-    {% endif %}
+        <!-- Begrüßung -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold mb-2">Willkommen zum Dartkassensystem</h1>
+            <p class="text-gray-400 text-sm">Was möchtest du tun?</p>
+        </div>
 
-    <h2>Teilnehmer</h2>
-    {% if teilnehmer %}
-        <ul>
-        {% for t in teilnehmer %}
-            <li>{{ t.name }} [<a href="{{ url_for('edit_teilnehmer', teilnehmer_id=t.id) }}">bearbeiten</a>]</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Teilnehmer erfasst.</p>
-    {% endif %}
+        <!-- Hauptmenü: Kachel-Navigation -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
 
-    <h2>Getränke</h2>
-    {% if getraenke %}
-        <ul>
-        {% for g in getraenke %}
-            <li>{{ g.name }} – {{ "%.2f"|format(g.preis) }} CHF ({{ g.kategorie }})
-                [<a href="{{ url_for('edit_getraenk', getraenk_id=g.id) }}">bearbeiten</a>]
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Getränke erfasst.</p>
-    {% endif %}
+            <!-- Events -->
+            <a href="{{ url_for('create_event') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+                <div class="text-xl font-semibold mb-1">📅 Events</div>
+                <p class="text-sm text-gray-600">Events verwalten & starten</p>
+            </a>
 
-    <hr>
+            <!-- Teilnehmer -->
+            <a href="{{ url_for('create_teilnehmer') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+                <div class="text-xl font-semibold mb-1">👥 Teilnehmer</div>
+                <p class="text-sm text-gray-600">Teilnehmer erstellen & verwalten</p>
+            </a>
 
-    <h2>🗂 Verwaltung</h2>
-    <ul>
-        <li><a href="{{ url_for('create_event') }}">➕ Neues Event erfassen</a></li>
-        <li><a href="{{ url_for('create_teilnehmer') }}">➕ Teilnehmer erfassen</a></li>
-        <li><a href="{{ url_for('create_getraenk') }}">➕ Getränk erfassen</a></li>
-    </ul>
+            <!-- Getränke -->
+            <a href="{{ url_for('create_getraenk') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+                <div class="text-xl font-semibold mb-1">🥤 Getränke</div>
+                <p class="text-sm text-gray-600">Getränke erfassen & anzeigen</p>
+            </a>
 
-    <h2>🛒 Aktionen</h2>
-    <ul>
-        <li><a href="{{ url_for('erfasse_verkauf') }}">🥤 Verkauf erfassen</a></li>
-        <li><a href="{{ url_for('zahlung_verwalten') }}">💰 Zahlungsstatus verwalten</a></li>
-        <li><a href="{{ url_for('erfasse_ausgabe') }}">📤 Ausgaben erfassen</a></li>
-    </ul>
+            <!-- Auswertungen -->
+            <a href="{{ url_for('teilnehmer_report') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+                <div class="text-xl font-semibold mb-1">📊 Auswertungen</div>
+                <p class="text-sm text-gray-600">Verbrauch & Abrechnung ansehen</p>
+            </a>
+        </div>
 
-    <h2>📊 Auswertungen</h2>
-    <ul>
-        <li><a href="{{ url_for('event_uebersicht') }}">📈 Teilnehmer-Verbrauch anzeigen (pro Event)</a></li>
-        <li><a href="{{ url_for('teilnehmer_report') }}">📄 Teilnehmerauswertung (mehrere Turniere)</a></li>
-        <li><a href="{{ url_for('teilnehmer_report_export') }}">📥 Teilnehmerreport (CSV)</a></li>
-        <li><a href="{{ url_for('export_umsatz') }}">📥 Umsatzübersicht (CSV)</a></li>
-        <li><a href="{{ url_for('umsatz_pro_jahr') }}">📊 Umsatz pro Jahr</a></li>
-        <li><a href="{{ url_for('umsatz_pro_teilnehmer') }}">👤 Umsatz pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('getraenkestatistik') }}">🥤 Getränkestatistik</a></li>
-        <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}">🧾 Verbrauch pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('teilnehmerliste') }}">📃 Teilnehmerliste</a></li>
-        <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">📋 Teilnehmerliste pro Event</a></li>
-        <li><a href="{{ url_for('einzelabrechnung_event') }}">💳 Einzelabrechnung pro Teilnehmer (Event)</a></li>
-        <li><a href="{{ url_for('umsatzverlauf') }}">📅 Umsatzverlauf (täglich)</a></li>
-        <li><a href="{{ url_for('teilnehmer_report_pdf') }}">📄 Teilnehmerreport (PDF)</a></li>
-        <li><a href="{{ url_for('export_umsatz_pdf') }}">📄 Umsatz pro Event (PDF)</a></li>
-        <li><a href="{{ url_for('export_umsatz_pro_jahr_pdf') }}">📄 Umsatz pro Jahr (PDF)</a></li>
-        <li><a href="{{ url_for('export_umsatz_pro_teilnehmer_pdf') }}">📄 Umsatz pro Teilnehmer (PDF)</a></li>
-        <li><a href="{{ url_for('export_getraenkestatistik_pdf') }}">📄 Getränkestatistik (PDF)</a></li>
-        <li><a href="{{ url_for('export_verbrauch_pro_teilnehmer_pdf') }}">📄 Verbrauch pro Teilnehmer (PDF)</a></li>
-        <li><a href="{{ url_for('export_teilnehmerliste_pdf') }}">📄 Teilnehmerliste (PDF)</a></li>
-        <li><a href="{{ url_for('endabrechnung_event') }}">🧾 Endabrechnung pro Event</a></li>
-        <li><a href="{{ url_for('endabrechnung_jahr') }}">📆 Endabrechnung pro Jahr</a></li>
+        <!-- Footer -->
+        <footer class="text-center mt-16 text-gray-500 text-sm">
+            &copy; {{ now.year }} Dartkassensystem – Version 2.1
+        </footer>
+    </div>
 
-    </ul>
 </body>
 </html>

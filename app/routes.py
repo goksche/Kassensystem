@@ -13,7 +13,13 @@ def index():
     events = Event.query.order_by(Event.datum.desc()).all()
     teilnehmer = Teilnehmer.query.order_by(Teilnehmer.name).all()
     getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
-    return render_template("index.html", events=events, teilnehmer=teilnehmer, getraenke=getraenke)
+    return render_template(
+        "index.html",
+        events=events,
+        teilnehmer=teilnehmer,
+        getraenke=getraenke,
+        now=datetime.now()  # ← NEU hinzugefügt
+    )
 
 @app.route("/event", methods=["GET", "POST"])
 def create_event():
