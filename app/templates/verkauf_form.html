@@ -2,49 +2,46 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Getränkeerfassung</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Verkauf</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-6">
-    <div class="max-w-2xl mx-auto bg-white p-8 shadow rounded-2xl">
-        <h1 class="text-2xl font-bold mb-4">🥤 Getränke erfassen für {{ eintrag.teilnehmer.name }}</h1>
+<body class="bg-gray-900 text-white min-h-screen p-6">
 
-        <form method="post" class="space-y-4">
-            <div>
-                <label for="getraenk_id" class="block text-sm font-medium text-gray-700">Getränk auswählen</label>
-                <select name="getraenk_id" id="getraenk_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    {% for g in getraenke %}
-                        <option value="{{ g.id }}">{{ g.name }} ({{ "%.2f"|format(g.preis) }} CHF)</option>
-                    {% endfor %}
-                </select>
-            </div>
+    <h1 class="text-2xl font-bold mb-4">🍻 Getränkeerfassung für {{ eintrag.teilnehmer.name }}</h1>
 
-            <div>
-                <label for="menge" class="block text-sm font-medium text-gray-700">Menge</label>
-                <input type="number" name="menge" id="menge" min="1" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-            </div>
+    <!-- Bezahlstatus -->
+    <div class="mb-6">
+        <form action="{{ url_for('update_status', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex items-center space-x-4">
+            <label for="status" class="font-semibold">Bezahlstatus:</label>
+            <select name="status" id="status" class="text-black rounded px-3 py-1">
+                <option value="offen" {% if eintrag.bezahlt_status == 'offen' %}selected{% endif %}>Offen</option>
+                <option value="twint" {% if eintrag.bezahlt_status == 'twint' %}selected{% endif %}>Twint</option>
+                <option value="bar" {% if eintrag.bezahlt_status == 'bar' %}selected{% endif %}>Bar</option>
+                <option value="schulden" {% if eintrag.bezahlt_status == 'schulden' %}selected{% endif %}>Schulden</option>
+            </select>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded">💾 Speichern</button>
+        </form>
+    </div>
 
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-                ✅ Erfassen
+    <!-- Getränkebuttons -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {% for getraenk in getraenke %}
+        <form action="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex flex-col items-center space-y-2">
+            <input type="hidden" name="getraenk_id" value="{{ getraenk.id }}">
+            <select name="menge" class="text-black px-2 py-1 rounded">
+                {% for i in range(1, 6) %}
+                    <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow">
+                {{ getraenk.name }}<br>
+                <span class="text-sm">{{ "%.2f"|format(getraenk.preis) }} CHF</span>
             </button>
         </form>
-
-        <hr class="my-6">
-
-        <h2 class="text-lg font-semibold mb-2">Bisherige Buchungen</h2>
-        {% if eintrag.verkaeufe %}
-            <ul class="space-y-1 text-sm text-gray-700">
-                {% for v in eintrag.verkaeufe %}
-                    <li>
-                        {{ v.zeitpunkt.strftime('%d.%m.%Y %H:%M') }} – {{ v.getraenk.name }} × {{ v.menge }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="text-gray-500">Keine Einträge vorhanden.</p>
-        {% endif %}
-
-        <a href="{{ url_for('event_start', event_id=eintrag.event.id) }}" class="mt-6 inline-block text-blue-600 hover:underline">⬅ Zurück zur Teilnehmerübersicht</a>
+        {% endfor %}
     </div>
+
+    <a href="{{ url_for('event_start', event_id=eintrag.event.id) }}" class="block mt-8 text-blue-400 hover:text-blue-600">⬅️ Zurück</a>
 </body>
 </html>

@@ -1196,3 +1196,18 @@ def event_details(event_id):
         teilnehmerdaten=teilnehmerdaten,
         abgeschlossen=abgeschlossen
     )
+@app.route("/bezahlstatus/<int:teilnehmer_event_id>", methods=["POST"])
+def bezahlstatus_aendern(teilnehmer_event_id):
+    eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
+    neuer_status = request.form.get("status")
+    if neuer_status in ["offen", "twint", "bar", "schulden"]:
+        eintrag.bezahlt_status = neuer_status
+        db.session.commit()
+    return redirect(request.referrer or url_for("index"))
+@app.route("/verkauf/status/<int:teilnehmer_event_id>", methods=["POST"])
+def update_status(teilnehmer_event_id):
+    status = request.form.get("status")
+    teilnehmer_event = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
+    teilnehmer_event.bezahlt_status = status
+    db.session.commit()
+    return redirect(url_for("verkauf", teilnehmer_event_id=teilnehmer_event_id))
