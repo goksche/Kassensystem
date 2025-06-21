@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Übersicht</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-10">📋 Event Übersicht</h1>
+
+    {% if events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for event in events %}
+                <div class="bg-white text-gray-900 p-6 rounded shadow">
+                    <h2 class="text-xl font-semibold">{{ event.name }}</h2>
+                    <p class="text-sm text-gray-600 mb-4">{{ event.datum.strftime('%d.%m.%Y') }}</p>
+
+                    <div class="flex flex-col gap-2 text-sm">
+                        <a href="{{ url_for('event_details', event_id=event.id) }}"
+                           class="text-blue-600 hover:underline">📂 Details anzeigen</a>
+
+                        <a href="{{ url_for('event_start', event_id=event.id) }}"
+                           class="text-yellow-600 hover:underline">🚀 Event starten</a>
+
+                        <a href="{{ url_for('zuweise_teilnehmer', event_id=event.id) }}"
+                           class="text-green-600 hover:underline">👥 Teilnehmer zuweisen</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-400">Keine Events gefunden.</p>
+    {% endif %}
+
+    <div class="mt-10 text-center">
+        <a href="{{ url_for('create_event') }}" class="text-purple-400 hover:underline mr-4">➕ Neues Event erfassen</a>
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">Zurück zur Startseite</a>
+    </div>
+</div>
+
+</body>
+</html>

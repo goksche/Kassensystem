@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Event starten</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">🚀 Event starten</h1>
+
+    <form method="get" action="{{ url_for('event_start') }}" class="mb-10 text-center">
+        <label for="event_id" class="mr-2">Event auswählen:</label>
+        <select name="event_id" id="event_id" onchange="this.form.submit()"
+                class="px-4 py-2 rounded text-black">
+            <option value="">-- bitte wählen --</option>
+            {% for e in events %}
+                <option value="{{ e.id }}" {% if selected_event_id == e.id %}selected{% endif %}>
+                    {{ e.name }} ({{ e.datum.strftime('%d.%m.%Y') }})
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if teilnehmer_liste %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for eintrag in teilnehmer_liste %}
+                <a href="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}"
+                   class="bg-white text-gray-900 p-4 rounded shadow hover:bg-blue-100 transition text-center">
+                    <div class="text-xl font-semibold">{{ eintrag.teilnehmer.name }}</div>
+                    <div class="text-sm text-gray-600 mt-1">Klick für Erfassung</div>
+                </a>
+            {% endfor %}
+        </div>
+    {% elif selected_event_id %}
+        <p class="text-center text-gray-400">Keine Teilnehmer für dieses Event zugewiesen.</p>
+    {% endif %}
+
+    <div class="mt-10 text-center">
+        <a href="{{ url_for('events_dashboard') }}" class="text-blue-400 hover:underline">Zurück</a>
+    </div>
+</div>
+
+</body>
+</html>

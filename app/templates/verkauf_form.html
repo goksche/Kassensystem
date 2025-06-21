@@ -2,45 +2,49 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Getränkeverkauf</title>
+    <title>Getränkeerfassung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Getränk buchen</h1>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-2xl mx-auto bg-white p-8 shadow rounded-2xl">
+        <h1 class="text-2xl font-bold mb-4">🥤 Getränke erfassen für {{ eintrag.teilnehmer.name }}</h1>
 
-    <form method="GET">
-        <label for="event_id">Event wählen:</label>
-        <select name="event_id" id="event_id" onchange="this.form.submit()">
-            <option value="">-- wählen --</option>
-            {% for event in events %}
-                <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>
-                    {{ event.name }} – {{ event.datum }}
-                </option>
-            {% endfor %}
-        </select>
-    </form>
+        <form method="post" class="space-y-4">
+            <div>
+                <label for="getraenk_id" class="block text-sm font-medium text-gray-700">Getränk auswählen</label>
+                <select name="getraenk_id" id="getraenk_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    {% for g in getraenke %}
+                        <option value="{{ g.id }}">{{ g.name }} ({{ "%.2f"|format(g.preis) }} CHF)</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-    {% if selected_event_id and teilnehmer_events %}
-    <form method="POST">
-        <input type="hidden" name="event_id" value="{{ selected_event_id }}">
+            <div>
+                <label for="menge" class="block text-sm font-medium text-gray-700">Menge</label>
+                <input type="number" name="menge" id="menge" min="1" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+            </div>
 
-        <label for="teilnehmer_event_id">Teilnehmer:</label><br>
-        <select name="teilnehmer_event_id" required>
-            {% for te in teilnehmer_events %}
-                <option value="{{ te.id }}">{{ te.teilnehmer.name }}</option>
-            {% endfor %}
-        </select><br><br>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+                ✅ Erfassen
+            </button>
+        </form>
 
-        <label for="getraenk_id">Getränk:</label><br>
-        <select name="getraenk_id" required>
-            {% for g in getraenke %}
-                <option value="{{ g.id }}">{{ g.name }} – {{ "%.2f"|format(g.preis) }} CHF</option>
-            {% endfor %}
-        </select><br><br>
+        <hr class="my-6">
 
-        <input type="submit" value="Buchen">
-    </form>
-    {% endif %}
+        <h2 class="text-lg font-semibold mb-2">Bisherige Buchungen</h2>
+        {% if eintrag.verkaeufe %}
+            <ul class="space-y-1 text-sm text-gray-700">
+                {% for v in eintrag.verkaeufe %}
+                    <li>
+                        {{ v.zeitpunkt.strftime('%d.%m.%Y %H:%M') }} – {{ v.getraenk.name }} × {{ v.menge }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-500">Keine Einträge vorhanden.</p>
+        {% endif %}
 
-    <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+        <a href="{{ url_for('event_start', event_id=eintrag.event.id) }}" class="mt-6 inline-block text-blue-600 hover:underline">⬅ Zurück zur Teilnehmerübersicht</a>
+    </div>
 </body>
 </html>

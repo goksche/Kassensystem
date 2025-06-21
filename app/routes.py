@@ -1122,3 +1122,77 @@ def export_endabrechnung_jahr_pdf():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=endabrechnung_pro_jahr.pdf'
     return response
+@app.route("/events")
+def event_list():
+    events = Event.query.order_by(Event.datum.desc()).all()  # ⬅ lädt alle Events
+    return render_template("event_list.html", events=events)  # ⬅ übergibt sie an das Template
+@app.route("/events")
+def events_dashboard():
+    return render_template("events.html")
+@app.route("/event/start", methods=["GET", "POST"])
+def event_start():
+    events = Event.query.order_by(Event.datum.desc()).all()
+    selected_event_id = request.args.get("event_id", type=int)
+
+    teilnehmer_liste = []
+    if selected_event_id:
+        teilnehmer_liste = (
+            db.session.query(TeilnehmerEvent)
+            .filter_by(event_id=selected_event_id)
+            .join(Teilnehmer)
+            .order_by(Teilnehmer.name)
+            .all()
+        )
+
+    return render_template(
+        "event_start.html",
+        events=events,
+        selected_event_id=selected_event_id,
+        teilnehmer_liste=teilnehmer_liste
+    )
+@app.route("/verkauf/<int:teilnehmer_event_id>", methods=["GET", "POST"])
+def verkauf(teilnehmer_event_id):
+    eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie, Getraenk.name).all()
+
+    if request.method == "POST":
+        getraenk_id = int(request.form["getraenk_id"])
+        menge = int(request.form.get("menge", 1))
+        verkauf = Verkauf(teilnehmer_event_id=eintrag.id, getraenk_id=getraenk_id, menge=menge)
+        db.session.add(verkauf)
+        db.session.commit()
+        return redirect(url_for("verkauf", teilnehmer_event_id=eintrag.id))
+
+    return render_template("verkauf_form.html", eintrag=eintrag, getraenke=getraenke)
+
+@app.route("/event/details/<int:event_id>")
+def event_details(event_id):
+    event = Event.query.get_or_404(event_id)
+    teilnehmer_events = TeilnehmerEvent.query.filter_by(event_id=event.id).all()
+
+    teilnehmerdaten = []
+    for te in teilnehmer_events:
+        teilnehmer = te.teilnehmer
+        status = te.bezahlt_status
+
+        summe = (
+            db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
+            .join(Getraenk)
+            .filter(Verkauf.teilnehmer_event_id == te.id)
+            .scalar()
+        ) or 0.0
+
+        teilnehmerdaten.append({
+            "name": teilnehmer.name,
+            "status": status,
+            "summe": round(summe, 2)
+        })
+
+    abgeschlossen = getattr(event, "abgeschlossen", False)
+
+    return render_template(
+        "event_details.html",
+        event=event,
+        teilnehmerdaten=teilnehmerdaten,
+        abgeschlossen=abgeschlossen
+    )

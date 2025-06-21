@@ -1,0 +1,15 @@
+<h2 class="text-xl font-semibold mb-2">🧍 Teilnehmerübersicht</h2>
+<table class="...">
+    <thead>
+        <tr>...</tr>
+    </thead>
+    <tbody>
+        {% for eintrag in teilnehmerdaten %}
+        <tr>
+            <td>{{ eintrag.name }}</td>
+            <td>{{ "%.2f"|format(eintrag.summe) }} CHF</td>
+            <td>{{ eintrag.status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
