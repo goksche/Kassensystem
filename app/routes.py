@@ -83,32 +83,16 @@ def create_getraenk():
 def list_getraenke():
     getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
     return render_template("getraenk_liste.html", getraenke=getraenke)
-@app.route("/verkauf", methods=["GET", "POST"])
-def erfasse_verkauf():
-    events = Event.query.order_by(Event.datum.desc()).all()
-    teilnehmer = Teilnehmer.query.order_by(Teilnehmer.name).all()
-    getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
+@app.route("/verkauf")
+def verkauf_redirect():
+    """Weiterleitung auf die neue Verkaufsansicht.
 
-    if request.method == "POST":
-        event_id = request.form["event"]
-        teilnehmer_id = request.form["teilnehmer"]
-        getraenk_id = request.form["getraenk"]
-        menge = int(request.form.get("menge", 1))
-
-        teilnehmer_event = TeilnehmerEvent.query.filter_by(event_id=event_id, teilnehmer_id=teilnehmer_id).first()
-        if not teilnehmer_event:
-            teilnehmer_event = TeilnehmerEvent(event_id=event_id, teilnehmer_id=teilnehmer_id, bezahlt_status="offen")
-            db.session.add(teilnehmer_event)
-            db.session.commit()
-
-        for _ in range(menge):
-            verkauf = Verkauf(teilnehmer_event_id=teilnehmer_event.id, getraenk_id=getraenk_id)
-            db.session.add(verkauf)
-
-        db.session.commit()
-        return redirect(url_for("index"))
-
-    return render_template("verkauf.html", events=events, teilnehmer=teilnehmer, getraenke=getraenke)
+    Die alte Verkaufsroute wurde durch eine teilnehmerspezifische Ansicht
+    ersetzt. Ein Aufruf ohne entsprechende ID wird daher auf die Seite zum
+    Starten eines Events umgeleitet, damit dort der gewünschte Teilnehmer
+    ausgewählt werden kann.
+    """
+    return redirect(url_for("event_start"))
 
 @app.route("/uebersicht")
 def event_uebersicht():
