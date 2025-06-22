@@ -37,3 +37,8 @@ Settings are loaded from `config.py`. The following environment variable is supp
 
 - Python 3.11+
 - Flask 2.3.3
+
+## Features
+
+- Manage events, drinks and participants
+- Add new participants and edit existing names directly on the creation page

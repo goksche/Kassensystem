@@ -64,7 +64,10 @@ def edit_teilnehmer(teilnehmer_id):
     if request.method == "POST":
         teilnehmer.name = request.form["name"]
         db.session.commit()
-        return redirect(url_for("index"))
+        next_url = request.form.get("next") or request.args.get("next")
+        if not next_url:
+            next_url = url_for("index")
+        return redirect(next_url)
 
     return render_template("teilnehmer_edit.html", teilnehmer=teilnehmer)
 @app.route("/getraenk", methods=["GET", "POST"])

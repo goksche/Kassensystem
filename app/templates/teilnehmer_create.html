@@ -24,9 +24,15 @@
     {% if teilnehmer_liste %}
     <div class="mt-10 bg-white text-gray-900 rounded-lg shadow p-6">
         <h2 class="text-xl font-semibold mb-4">Bereits erfasste Teilnehmer</h2>
-        <ul class="list-disc list-inside space-y-1">
+        <ul class="space-y-2">
             {% for teilnehmer in teilnehmer_liste %}
-                <li>{{ teilnehmer.name }}</li>
+                <li>
+                    <form action="{{ url_for('edit_teilnehmer', teilnehmer_id=teilnehmer.id) }}" method="POST" class="flex items-center space-x-2">
+                        <input type="text" name="name" value="{{ teilnehmer.name }}" class="flex-1 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="hidden" name="next" value="{{ url_for('create_teilnehmer') }}">
+                        <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Speichern</button>
+                    </form>
+                </li>
             {% endfor %}
         </ul>
     </div>
