@@ -40,6 +40,7 @@ class Ausgabe(db.Model):
     kategorie = db.Column(db.String(50), nullable=False)
     beschreibung = db.Column(db.String(200), nullable=True)
     betrag = db.Column(db.Float, nullable=False)
+    datum = db.Column(db.Date, nullable=False, default=db.func.current_date())
 
     event = db.relationship("Event", backref="ausgaben")
 
