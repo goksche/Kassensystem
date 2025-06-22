@@ -21,15 +21,15 @@
                 </tr>
             </thead>
             <tbody>
-                {% for teilnehmer in teilnehmer_liste %}
+                {% for eintrag in teilnehmer_liste %}
                 <tr class="border-b border-gray-600 hover:bg-gray-700">
-                    <td class="px-4 py-2">{{ teilnehmer.teilnehmer.name }}</td>
+                    <td class="px-4 py-2">{{ eintrag.teilnehmer.name }}</td>
                     <td class="px-4 py-2 text-right">
-                        {{ "%.2f"|format(teilnehmer.betrag or 0) }} CHF
+                        {{ "%.2f"|format(eintrag.betrag or 0) }} CHF
                     </td>
-                    <td class="px-4 py-2">{{ teilnehmer.bezahlt_status }}</td>
+                    <td class="px-4 py-2">{{ eintrag.bezahlt_status }}</td>
                     <td class="px-4 py-2 text-right">
-                        <a href="{{ url_for('verkauf', teilnehmer_event_id=teilnehmer.id) }}"
+                        <a href="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}"
                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
                             ➡️ Erfassen
                         </a>
