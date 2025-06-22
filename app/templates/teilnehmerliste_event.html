@@ -32,7 +32,8 @@
             {% endfor %}
         </table>
         <br>
-        <a href="{{ url_for('export_teilnehmerliste_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a>
+        <a href="{{ url_for('export_teilnehmerliste_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a> |
+        <a href="{{ url_for('export_teilnehmerliste_event_pdf', event_id=selected_event_id) }}" target="_blank">📄 PDF-Export</a>
     {% endif %}
 
     <br><br>

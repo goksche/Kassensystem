@@ -5,6 +5,7 @@
     <title>Einzelabrechnung pro Teilnehmer</title>
 </head>
 {% if selected_event_id %}
+    <a href="{{ url_for('export_einzelabrechnung_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a> |
     <a href="{{ url_for('einzelabrechnung_event_pdf', event_id=selected_event_id) }}" target="_blank">📄 PDF-Export</a>
 {% endif %}
 <body>
