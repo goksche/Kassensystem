@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Eventvergleich</title>
+</head>
+<body>
+    <h1>Eventvergleich</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Event</th>
+            <th>Teilnehmer</th>
+            <th>Umsatz (CHF)</th>
+        </tr>
+        {% for eintrag in daten %}
+        <tr>
+            <td>{{ eintrag.event.name }}</td>
+            <td>{{ eintrag.teilnehmer }}</td>
+            <td>{{ "%.2f"|format(eintrag.umsatz) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+</body>
+</html>

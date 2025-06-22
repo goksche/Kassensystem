@@ -1447,3 +1447,82 @@ def verkauf(teilnehmer_event_id):
     )
 
     return render_template("verkauf_form.html", eintrag=eintrag, getraenke=getraenke, verkaufe=verkaufe)
+
+@app.route("/auswertung/eventvergleich")
+def eventvergleich():
+    events = Event.query.order_by(Event.datum).all()
+    daten = []
+    for ev in events:
+        teilnehmer_count = TeilnehmerEvent.query.filter_by(event_id=ev.id).count()
+        umsatz = (
+            db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .filter(TeilnehmerEvent.event_id == ev.id)
+            .scalar() or 0.0
+        )
+        daten.append({"event": ev, "teilnehmer": teilnehmer_count, "umsatz": umsatz})
+    return render_template("eventvergleich.html", daten=daten)
+
+@app.route("/auswertung/jahresvergleich")
+def jahresvergleich():
+    jahre = (
+        db.session.query(func.strftime('%Y', Event.datum).label('jahr'))
+        .group_by('jahr')
+        .order_by('jahr')
+        .all()
+    )
+    daten = []
+    for (jahr,) in jahre:
+        events = Event.query.filter(func.strftime('%Y', Event.datum) == jahr).all()
+        event_ids = [e.id for e in events]
+        umsatz = (
+            db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .filter(TeilnehmerEvent.event_id.in_(event_ids))
+            .scalar() or 0.0
+        )
+        teilnehmer = (
+            db.session.query(TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.event_id.in_(event_ids))
+            .count()
+        )
+        daten.append({"jahr": jahr, "events": len(events), "teilnehmer": teilnehmer, "umsatz": umsatz})
+    return render_template("jahresvergleich.html", daten=daten)
+
+@app.route("/auswertung/umsatz_getraenk")
+def umsatz_getraenk():
+    daten = (
+        db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Verkauf.menge * Getraenk.preis))
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .group_by(Getraenk.id)
+        .order_by(Getraenk.name)
+        .all()
+    )
+    return render_template("umsatz_getraenk.html", daten=daten)
+
+@app.route("/auswertung/finanzuebersicht")
+def finanzuebersicht():
+    events = Event.query.order_by(Event.datum).all()
+    daten = []
+    for ev in events:
+        umsatz = (
+            db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+            .filter(TeilnehmerEvent.event_id == ev.id)
+            .scalar() or 0.0
+        )
+        einnahmen = (
+            db.session.query(func.sum(Einnahme.betrag))
+            .filter(Einnahme.event_id == ev.id)
+            .scalar() or 0.0
+        )
+        ausgaben = (
+            db.session.query(func.sum(Ausgabe.betrag))
+            .filter(Ausgabe.event_id == ev.id)
+            .scalar() or 0.0
+        )
+        daten.append({"event": ev, "umsatz": umsatz, "einnahmen": einnahmen, "ausgaben": ausgaben, "gewinn": einnahmen + umsatz - ausgaben})
+    return render_template("finanzuebersicht.html", daten=daten)

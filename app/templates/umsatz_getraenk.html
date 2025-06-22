@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Umsatz pro Getränk</title>
+</head>
+<body>
+    <h1>Umsatz pro Getränk</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Getränk</th>
+            <th>Anzahl</th>
+            <th>Umsatz (CHF)</th>
+        </tr>
+        {% for name, menge, betrag in daten %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ menge }}</td>
+            <td>{{ "%.2f"|format(betrag) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+</body>
+</html>
