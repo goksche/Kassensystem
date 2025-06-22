@@ -3,53 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>Auswertungen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Auswertungen</h1>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <h2>Teilnehmerbezogene Auswertungen</h2>
-    <ul>
-        <li><a href="{{ url_for('teilnehmer_report') }}">Teilnehmerreport (mehrere Events)</a></li>
-        <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}">Verbrauch pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('teilnehmerliste') }}">Teilnehmerlisten gesamt</a></li>
-        <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">Teilnehmerlisten pro Event</a></li>
-        <li><a href="{{ url_for('teilnehmer_report') }}">Teilnehmerreport</a></li>
-        <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}">Verbrauch pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('teilnehmerliste') }}">Teilnehmerliste</a></li>
-        <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">Teilnehmerliste pro Event</a></li>
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">📊 Auswertungen</h1>
+
+    <h2 class="text-xl font-semibold mt-6">Teilnehmerbezogene Auswertungen</h2>
+    <ul class="list-disc list-inside space-y-1">
+        <li><a href="{{ url_for('teilnehmer_report') }}" class="text-blue-400 hover:underline">Teilnehmerreport (mehrere Events)</a></li>
+        <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}" class="text-blue-400 hover:underline">Verbrauch pro Teilnehmer</a></li>
+        <li><a href="{{ url_for('teilnehmerliste') }}" class="text-blue-400 hover:underline">Teilnehmerlisten gesamt</a></li>
+        <li><a href="{{ url_for('teilnehmerliste_pro_event') }}" class="text-blue-400 hover:underline">Teilnehmerlisten pro Event</a></li>
     </ul>
 
-    <h2>Eventbezogene Auswertungen</h2>
-    <ul>
-        <li><a href="{{ url_for('event_uebersicht') }}">Eventübersicht pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('einzelabrechnung_event') }}">Einzelabrechnung pro Event</a></li>
-        <li><a href="{{ url_for('endabrechnung_event') }}">Endabrechnung pro Event</a></li>
-        <li><a href="{{ url_for('eventvergleich') }}">Eventvergleich</a></li>
+    <h2 class="text-xl font-semibold mt-6">Eventbezogene Auswertungen</h2>
+    <ul class="list-disc list-inside space-y-1">
+        <li><a href="{{ url_for('event_uebersicht') }}" class="text-blue-400 hover:underline">Eventübersicht pro Teilnehmer</a></li>
+        <li><a href="{{ url_for('einzelabrechnung_event') }}" class="text-blue-400 hover:underline">Einzelabrechnung pro Event</a></li>
+        <li><a href="{{ url_for('endabrechnung_event') }}" class="text-blue-400 hover:underline">Endabrechnung pro Event</a></li>
+        <li><a href="{{ url_for('eventvergleich') }}" class="text-blue-400 hover:underline">Eventvergleich</a></li>
     </ul>
 
-    <h2>Zeit- und Jahresbezogene Auswertungen</h2>
-    <ul>
-        <li><a href="{{ url_for('umsatzverlauf') }}">Umsatzverlauf (Datum)</a></li>
-        <li><a href="{{ url_for('umsatz_pro_jahr') }}">Umsatz pro Jahr</a></li>
-        <li><a href="{{ url_for('endabrechnung_jahr') }}">Endabrechnung pro Jahr</a></li>
-        <li><a href="{{ url_for('jahresvergleich') }}">Jahresvergleich</a></li>
-        <li><a href="{{ url_for('umsatzverlauf') }}">Umsatzverlauf</a></li>
-        <li><a href="{{ url_for('umsatz_pro_jahr') }}">Umsatz pro Jahr</a></li>
-        <li><a href="{{ url_for('endabrechnung_jahr') }}">Endabrechnung pro Jahr</a></li>
+    <h2 class="text-xl font-semibold mt-6">Zeit- und Jahresbezogene Auswertungen</h2>
+    <ul class="list-disc list-inside space-y-1">
+        <li><a href="{{ url_for('umsatzverlauf') }}" class="text-blue-400 hover:underline">Umsatzverlauf (Datum)</a></li>
+        <li><a href="{{ url_for('umsatz_pro_jahr') }}" class="text-blue-400 hover:underline">Umsatz pro Jahr</a></li>
+        <li><a href="{{ url_for('endabrechnung_jahr') }}" class="text-blue-400 hover:underline">Endabrechnung pro Jahr</a></li>
+        <li><a href="{{ url_for('jahresvergleich') }}" class="text-blue-400 hover:underline">Jahresvergleich</a></li>
     </ul>
 
-    <h2>Getränkebezogene Auswertungen</h2>
-    <ul>
-        <li><a href="{{ url_for('getraenkestatistik') }}">Getränkestatistik</a></li>
-        <li><a href="{{ url_for('umsatz_getraenk') }}">Umsatz pro Getränk</a></li>
+    <h2 class="text-xl font-semibold mt-6">Getränkebezogene Auswertungen</h2>
+    <ul class="list-disc list-inside space-y-1">
+        <li><a href="{{ url_for('getraenkestatistik') }}" class="text-blue-400 hover:underline">Getränkestatistik</a></li>
+        <li><a href="{{ url_for('umsatz_getraenk') }}" class="text-blue-400 hover:underline">Umsatz pro Getränk</a></li>
     </ul>
 
-    <h2>Finanzübersicht</h2>
-    <ul>
-        <li><a href="{{ url_for('umsatz_pro_teilnehmer') }}">Umsatz pro Teilnehmer</a></li>
-        <li><a href="{{ url_for('finanzuebersicht') }}">Einnahmen/Ausgaben gegenüberstellen</a></li>
+    <h2 class="text-xl font-semibold mt-6">Finanzübersicht</h2>
+    <ul class="list-disc list-inside space-y-1">
+        <li><a href="{{ url_for('umsatz_pro_teilnehmer') }}" class="text-blue-400 hover:underline">Umsatz pro Teilnehmer</a></li>
+        <li><a href="{{ url_for('finanzuebersicht') }}" class="text-blue-400 hover:underline">Einnahmen/Ausgaben gegenüberstellen</a></li>
     </ul>
 
-    <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+    <div class="text-center mt-10">
+        <a href="#" onclick="history.back(); return false;" class="text-blue-400 hover:underline mr-4">⬅️ Zurück</a>
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">🏠 Startseite</a>
+    </div>
+</div>
+
 </body>
 </html>

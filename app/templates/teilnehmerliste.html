@@ -3,26 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmerliste</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Teilnehmerliste</h1>
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>Name</th>
-            <th>Anzahl Teilnahmen</th>
-        </tr>
-        {% for name, teilnahmen in daten %}
-        <tr>
-            <td>{{ name }}</td>
-            <td>{{ teilnahmen }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <br>
-    <a href="{{ url_for('export_teilnehmerliste_csv') }}">📥 CSV-Export</a> |
-    <a href="{{ url_for('export_teilnehmerliste_pdf') }}" target="_blank">📄 PDF-Export</a>
-    <br><br>
-    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">👥 Teilnehmerliste</h1>
+
+    <div class="bg-gray-800 p-4 rounded shadow-md">
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2 text-left">Name</th>
+                    <th class="px-4 py-2 text-right">Anzahl Teilnahmen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, teilnahmen in daten %}
+                <tr class="border-b border-gray-600">
+                    <td class="px-4 py-1">{{ name }}</td>
+                    <td class="px-4 py-1 text-right">{{ teilnahmen }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6 text-sm">
+        <a href="{{ url_for('export_teilnehmerliste_csv') }}" class="text-blue-400 hover:underline">📥 CSV-Export</a>
+        |
+        <a href="{{ url_for('export_teilnehmerliste_pdf') }}" target="_blank" class="text-blue-400 hover:underline">📄 PDF-Export</a>
+    </div>
+
+    <div class="text-center mt-10">
+        <a href="#" onclick="history.back(); return false;" class="text-blue-400 hover:underline mr-4">⬅️ Zurück</a>
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">🏠 Startseite</a>
+    </div>
+</div>
+
 </body>
 </html>

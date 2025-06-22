@@ -3,21 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title>Getränkeliste</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Erfasste Getränke</h1>
+<body class="bg-gray-900 text-white min-h-screen">
+
+<div class="max-w-xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">🥤 Erfasste Getränke</h1>
+
     {% if getraenke %}
-        <ul>
-        {% for g in getraenke %}
-            <li>{{ g.name }} ({{ g.kategorie }}) – {{ "%.2f"|format(g.preis) }} CHF</li>
-        {% endfor %}
-        </ul>
+    <div class="bg-gray-800 p-4 rounded shadow-md">
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2 text-left">Name</th>
+                    <th class="px-4 py-2 text-right">Kategorie</th>
+                    <th class="px-4 py-2 text-right">Preis (CHF)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in getraenke %}
+                <tr class="border-b border-gray-600">
+                    <td class="px-4 py-1">{{ g.name }}</td>
+                    <td class="px-4 py-1 text-right">{{ g.kategorie }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(g.preis) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-        <p>Noch keine Getränke erfasst.</p>
+        <p class="text-center text-gray-400">Noch keine Getränke erfasst.</p>
     {% endif %}
 
-    <br>
-    <a href="{{ url_for('create_getraenk') }}">➕ Neues Getränk erfassen</a><br>
-    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+    <div class="mt-6 text-center text-sm">
+        <a href="{{ url_for('create_getraenk') }}" class="text-blue-400 hover:underline">➕ Neues Getränk erfassen</a>
+    </div>
+
+    <div class="text-center mt-10">
+        <a href="#" onclick="history.back(); return false;" class="text-blue-400 hover:underline mr-4">⬅️ Zurück</a>
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">🏠 Startseite</a>
+    </div>
+</div>
+
 </body>
 </html>

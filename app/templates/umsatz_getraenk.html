@@ -3,24 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Umsatz pro Getränk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Umsatz pro Getränk</h1>
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>Getränk</th>
-            <th>Anzahl</th>
-            <th>Umsatz (CHF)</th>
-        </tr>
-        {% for name, menge, betrag in daten %}
-        <tr>
-            <td>{{ name }}</td>
-            <td>{{ menge }}</td>
-            <td>{{ "%.2f"|format(betrag) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
-    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+<body class="bg-gray-900 text-white min-h-screen">
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">🥤 Umsatz pro Getränk</h1>
+
+    <div class="bg-gray-800 p-4 rounded shadow-md">
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2 text-left">Getränk</th>
+                    <th class="px-4 py-2 text-right">Anzahl</th>
+                    <th class="px-4 py-2 text-right">Umsatz (CHF)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, menge, betrag in daten %}
+                <tr class="border-b border-gray-600">
+                    <td class="px-4 py-1">{{ name }}</td>
+                    <td class="px-4 py-1 text-right">{{ menge }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(betrag) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-10">
+        <a href="#" onclick="history.back(); return false;" class="text-blue-400 hover:underline mr-4">⬅️ Zurück</a>
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">🏠 Startseite</a>
+    </div>
+</div>
+
 </body>
 </html>
