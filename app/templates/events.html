@@ -10,19 +10,19 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Event erfassen -->
-        <a href="{{ url_for('create_event') }}" class="block p-6 rounded-xl shadow-lg bg-white hover:bg-blue-100 border border-gray-200 transition">
+        <a href="{{ url_for('create_event') }}" class="block p-6 rounded-xl shadow-lg bg-white text-gray-900 hover:bg-blue-100 border border-gray-200 transition">
             <h2 class="text-xl font-semibold mb-2">➕ Event erfassen</h2>
             <p>Neuen Anlass ins System eintragen</p>
         </a>
 
         <!-- Event Übersicht -->
-        <a href="{{ url_for('event_list') }}" class="block p-6 rounded-xl shadow-lg bg-white hover:bg-green-100 border border-gray-200 transition">
+        <a href="{{ url_for('event_list') }}" class="block p-6 rounded-xl shadow-lg bg-white text-gray-900 hover:bg-green-100 border border-gray-200 transition">
             <h2 class="text-xl font-semibold mb-2">📄 Event Übersicht</h2>
             <p>Liste aller erfassten Events und Details</p>
         </a>
 
         <!-- Event starten -->
-        <a href="{{ url_for('event_start') }}" class="block p-6 rounded-xl shadow-lg bg-white hover:bg-yellow-100 border border-gray-200 transition">
+        <a href="{{ url_for('event_start') }}" class="block p-6 rounded-xl shadow-lg bg-white text-gray-900 hover:bg-yellow-100 border border-gray-200 transition">
             <h2 class="text-xl font-semibold mb-2">🚀 Event starten</h2>
             <p>Teilnehmer auswählen und Getränke erfassen</p>
         </a>
