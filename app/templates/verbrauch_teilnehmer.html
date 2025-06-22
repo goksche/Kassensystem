@@ -6,6 +6,10 @@
 </head>
 <body>
     <h1>Verbrauch pro Teilnehmer</h1>
+    <p>
+        <a href="{{ url_for('export_verbrauch_pro_teilnehmer_csv') }}">📥 CSV-Export</a> |
+        <a href="{{ url_for('export_verbrauch_pro_teilnehmer_pdf') }}" target="_blank">📄 PDF-Export</a>
+    </p>
 
     {% for eintrag in daten %}
         <h2>{{ eintrag.teilnehmer }}</h2>

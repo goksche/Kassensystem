@@ -6,6 +6,10 @@
 </head>
 <body>
     <h1>Teilnehmerauswertung über mehrere Events</h1>
+    <p>
+        <a href="{{ url_for('teilnehmer_report_export') }}">📥 CSV-Export</a> |
+        <a href="{{ url_for('teilnehmer_report_pdf') }}" target="_blank">📄 PDF-Export</a>
+    </p>
 
     {% if daten %}
         {% for eintrag in daten %}
