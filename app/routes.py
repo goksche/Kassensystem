@@ -1155,22 +1155,20 @@ def event_details(event_id):
     event = Event.query.get_or_404(event_id)
     teilnehmer_events = TeilnehmerEvent.query.filter_by(event_id=event.id).all()
 
-    teilnehmerdaten = []
+    teilnehmer_liste = []
     for te in teilnehmer_events:
-        teilnehmer = te.teilnehmer
-        status = te.bezahlt_status
-
-        summe = (
+        betrag = (
             db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
             .join(Getraenk)
             .filter(Verkauf.teilnehmer_event_id == te.id)
             .scalar()
         ) or 0.0
 
-        teilnehmerdaten.append({
-            "name": teilnehmer.name,
-            "status": status,
-            "summe": round(summe, 2)
+        teilnehmer_liste.append({
+            "id": te.id,
+            "teilnehmer": te.teilnehmer,
+            "betrag": round(betrag, 2),
+            "bezahlt_status": te.bezahlt_status,
         })
 
     abgeschlossen = getattr(event, "abgeschlossen", False)
@@ -1178,7 +1176,7 @@ def event_details(event_id):
     return render_template(
         "event_details.html",
         event=event,
-        teilnehmerdaten=teilnehmerdaten,
+        teilnehmer_liste=teilnehmer_liste,
         abgeschlossen=abgeschlossen
     )
 @app.route("/bezahlstatus/<int:teilnehmer_event_id>", methods=["POST"])
