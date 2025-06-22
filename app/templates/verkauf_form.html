@@ -8,33 +8,15 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-6">
 
-    <h1 class="text-2xl font-bold mb-4">🍻 Getränkeerfassung für {{ eintrag.teilnehmer.name }}</h1>
+    <h1 class="text-2xl font-bold mb-6">🍻 Getränkeerfassung – {{ eintrag.teilnehmer.name }}</h1>
 
-    <!-- Bezahlstatus -->
-    <div class="mb-6">
-        <form action="{{ url_for('update_status', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex items-center space-x-4">
-            <label for="status" class="font-semibold">Bezahlstatus:</label>
-            <select name="status" id="status" class="text-black rounded px-3 py-1">
-                <option value="offen" {% if eintrag.bezahlt_status == 'offen' %}selected{% endif %}>Offen</option>
-                <option value="twint" {% if eintrag.bezahlt_status == 'twint' %}selected{% endif %}>Twint</option>
-                <option value="bar" {% if eintrag.bezahlt_status == 'bar' %}selected{% endif %}>Bar</option>
-                <option value="schulden" {% if eintrag.bezahlt_status == 'schulden' %}selected{% endif %}>Schulden</option>
-            </select>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded">💾 Speichern</button>
-        </form>
-    </div>
-
-    <!-- Getränkebuttons -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <!-- Getränkekacheln -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         {% for getraenk in getraenke %}
-        <form action="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex flex-col items-center space-y-2">
+        <form action="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex space-x-2 items-center">
             <input type="hidden" name="getraenk_id" value="{{ getraenk.id }}">
-            <select name="menge" class="text-black px-2 py-1 rounded">
-                {% for i in range(1, 6) %}
-                    <option value="{{ i }}">{{ i }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow">
+            <input type="number" name="menge" value="1" min="1" class="w-16 text-center text-xl text-black px-2 py-1 rounded h-full">
+            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-3 rounded-lg shadow text-lg text-center">
                 {{ getraenk.name }}<br>
                 <span class="text-sm">{{ "%.2f"|format(getraenk.preis) }} CHF</span>
             </button>
@@ -42,6 +24,50 @@
         {% endfor %}
     </div>
 
-    <a href="{{ url_for('event_start', event_id=eintrag.event.id) }}" class="block mt-8 text-blue-400 hover:text-blue-600">⬅️ Zurück</a>
+    <!-- Tabelle mit bisherigen Einträgen -->
+    {% if verkaufe %}
+    <div class="bg-gray-800 p-4 rounded shadow-md mb-8">
+        <h2 class="text-xl font-semibold mb-2">📋 Erfasste Getränke</h2>
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2 text-left">Getränk</th>
+                    <th class="px-4 py-2 text-right">Menge</th>
+                    <th class="px-4 py-2 text-right">Betrag (CHF)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set ns = namespace(gesamtsumme=0) %}
+                {% for name, menge, betrag in verkaufe %}
+                {% set ns.gesamtsumme = ns.gesamtsumme + betrag %}
+                <tr class="border-b border-gray-600">
+                    <td class="px-4 py-1">{{ name }}</td>
+                    <td class="px-4 py-1 text-right">{{ menge }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(betrag) }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="font-bold bg-gray-700">
+                    <td class="px-4 py-2 text-right" colspan="2">Gesamtsumme:</td>
+                    <td class="px-4 py-2 text-right">{{ "%.2f"|format(ns.gesamtsumme) }} CHF</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Bezahlstatus -->
+    <form action="{{ url_for('bezahlstatus_aendern', teilnehmer_event_id=eintrag.id) }}" method="post" class="flex items-center gap-4 mt-4">
+        <label for="status" class="font-semibold text-lg">Bezahlstatus:</label>
+        <select name="status" id="status" class="text-black rounded px-3 py-1">
+            <option value="offen" {% if eintrag.bezahlt_status == 'offen' %}selected{% endif %}>Offen</option>
+            <option value="twint" {% if eintrag.bezahlt_status == 'twint' %}selected{% endif %}>Twint</option>
+            <option value="bar" {% if eintrag.bezahlt_status == 'bar' %}selected{% endif %}>Bar</option>
+            <option value="schulden" {% if eintrag.bezahlt_status == 'schulden' %}selected{% endif %}>Schulden</option>
+        </select>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded">💾 Speichern</button>
+    </form>
+
+    <a href="{{ url_for('event_start', event_id=eintrag.event.id) }}" class="inline-block mt-6 text-blue-400 hover:text-blue-600">⬅️ Zurück zur Teilnehmerliste</a>
+
 </body>
 </html>

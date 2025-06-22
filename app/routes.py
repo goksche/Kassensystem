@@ -1150,21 +1150,6 @@ def event_start():
         selected_event_id=selected_event_id,
         teilnehmer_liste=teilnehmer_liste
     )
-@app.route("/verkauf/<int:teilnehmer_event_id>", methods=["GET", "POST"])
-def verkauf(teilnehmer_event_id):
-    eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
-    getraenke = Getraenk.query.order_by(Getraenk.kategorie, Getraenk.name).all()
-
-    if request.method == "POST":
-        getraenk_id = int(request.form["getraenk_id"])
-        menge = int(request.form.get("menge", 1))
-        verkauf = Verkauf(teilnehmer_event_id=eintrag.id, getraenk_id=getraenk_id, menge=menge)
-        db.session.add(verkauf)
-        db.session.commit()
-        return redirect(url_for("verkauf", teilnehmer_event_id=eintrag.id))
-
-    return render_template("verkauf_form.html", eintrag=eintrag, getraenke=getraenke)
-
 @app.route("/event/details/<int:event_id>")
 def event_details(event_id):
     event = Event.query.get_or_404(event_id)
@@ -1204,10 +1189,25 @@ def bezahlstatus_aendern(teilnehmer_event_id):
         eintrag.bezahlt_status = neuer_status
         db.session.commit()
     return redirect(request.referrer or url_for("index"))
-@app.route("/verkauf/status/<int:teilnehmer_event_id>", methods=["POST"])
-def update_status(teilnehmer_event_id):
-    status = request.form.get("status")
-    teilnehmer_event = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
-    teilnehmer_event.bezahlt_status = status
-    db.session.commit()
-    return redirect(url_for("verkauf", teilnehmer_event_id=teilnehmer_event_id))
+@app.route("/verkauf/<int:teilnehmer_event_id>", methods=["GET", "POST"])
+def verkauf(teilnehmer_event_id):
+    eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie, Getraenk.name).all()
+
+    if request.method == "POST":
+        getraenk_id = int(request.form["getraenk_id"])
+        menge = int(request.form.get("menge", 1))
+        verkauf = Verkauf(teilnehmer_event_id=eintrag.id, getraenk_id=getraenk_id, menge=menge)
+        db.session.add(verkauf)
+        db.session.commit()
+        return redirect(url_for("verkauf", teilnehmer_event_id=eintrag.id))
+
+    verkaufe = (
+        db.session.query(Getraenk.name, func.sum(Verkauf.menge), func.sum(Verkauf.menge * Getraenk.preis))
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .filter(Verkauf.teilnehmer_event_id == eintrag.id)
+        .group_by(Getraenk.name)
+        .all()
+    )
+
+    return render_template("verkauf_form.html", eintrag=eintrag, getraenke=getraenke, verkaufe=verkaufe)
