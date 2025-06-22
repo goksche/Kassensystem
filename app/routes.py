@@ -43,13 +43,19 @@ def edit_event(event_id):
     return render_template("event_edit.html", event=event)
 @app.route("/teilnehmer/neu", methods=["GET", "POST"])
 def create_teilnehmer():
+    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
+
     if request.method == "POST":
         name = request.form["name"]
         teilnehmer = Teilnehmer(name=name)
         db.session.add(teilnehmer)
         db.session.commit()
-        return redirect(url_for("index"))
-    return render_template("teilnehmer_create.html")
+        return redirect(url_for("create_teilnehmer"))
+
+    return render_template(
+        "teilnehmer_create.html",
+        teilnehmer_liste=teilnehmer_liste
+    )
 
 @app.route("/teilnehmer/edit/<int:teilnehmer_id>", methods=["GET", "POST"])
 def edit_teilnehmer(teilnehmer_id):
