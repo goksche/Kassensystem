@@ -1112,11 +1112,12 @@ def export_endabrechnung_jahr_pdf():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=endabrechnung_pro_jahr.pdf'
     return response
-@app.route("/events")
+@app.route("/events/list")
 def event_list():
     events = Event.query.order_by(Event.datum.desc()).all()  # ⬅ lädt alle Events
     return render_template("event_list.html", events=events)  # ⬅ übergibt sie an das Template
-@app.route("/events")
+
+@app.route("/events/dashboard")
 def events_dashboard():
     return render_template("events.html")
 @app.route("/event/start", methods=["GET", "POST"])
