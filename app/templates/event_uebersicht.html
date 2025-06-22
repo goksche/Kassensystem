@@ -21,7 +21,8 @@
 
     {% if selected_event_id %}
         <p>
-            📥 <a href="{{ url_for('export_csv', event_id=selected_event_id) }}">Teilnehmer-Export (CSV)</a><br>
+            📥 <a href="{{ url_for('export_csv', event_id=selected_event_id) }}">Teilnehmer-Export (CSV)</a> |
+            📄 <a href="{{ url_for('export_event_uebersicht_pdf', event_id=selected_event_id) }}" target="_blank">PDF</a>
         </p>
     {% endif %}
 

@@ -53,9 +53,8 @@
         <p><strong>{{ "Gewinn" if daten.gewinn >= 0 else "Verlust" }}:</strong> {{ "%.2f"|format(daten.gewinn) }} CHF</p>
 
         <br>
-        <a href="{{ url_for('export_endabrechnung_event_pdf', event_id=selected_event_id) }}" target="_blank">
-            📄 PDF-Export der Endabrechnung
-        </a>
+        <a href="{{ url_for('export_endabrechnung_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a> |
+        <a href="{{ url_for('export_endabrechnung_event_pdf', event_id=selected_event_id) }}" target="_blank">📄 PDF-Export der Endabrechnung</a>
     {% endif %}
 
     <br><br>
