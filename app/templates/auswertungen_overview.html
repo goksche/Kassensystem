@@ -9,17 +9,14 @@
 
     <h2>Teilnehmerbezogene Auswertungen</h2>
     <ul>
-eohd3q-codex/liste-der-verfügbaren-auswertungen-anzeigen
         <li><a href="{{ url_for('teilnehmer_report') }}">Teilnehmerreport (mehrere Events)</a></li>
         <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}">Verbrauch pro Teilnehmer</a></li>
         <li><a href="{{ url_for('teilnehmerliste') }}">Teilnehmerlisten gesamt</a></li>
         <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">Teilnehmerlisten pro Event</a></li>
-=======
         <li><a href="{{ url_for('teilnehmer_report') }}">Teilnehmerreport</a></li>
         <li><a href="{{ url_for('verbrauch_pro_teilnehmer') }}">Verbrauch pro Teilnehmer</a></li>
         <li><a href="{{ url_for('teilnehmerliste') }}">Teilnehmerliste</a></li>
         <li><a href="{{ url_for('teilnehmerliste_pro_event') }}">Teilnehmerliste pro Event</a></li>
-main
     </ul>
 
     <h2>Eventbezogene Auswertungen</h2>
@@ -27,42 +24,30 @@ main
         <li><a href="{{ url_for('event_uebersicht') }}">Eventübersicht pro Teilnehmer</a></li>
         <li><a href="{{ url_for('einzelabrechnung_event') }}">Einzelabrechnung pro Event</a></li>
         <li><a href="{{ url_for('endabrechnung_event') }}">Endabrechnung pro Event</a></li>
-eohd3q-codex/liste-der-verfügbaren-auswertungen-anzeigen
         <li><a href="{{ url_for('eventvergleich') }}">Eventvergleich</a></li>
-=======
-  main
     </ul>
 
     <h2>Zeit- und Jahresbezogene Auswertungen</h2>
     <ul>
-eohd3q-codex/liste-der-verfügbaren-auswertungen-anzeigen
         <li><a href="{{ url_for('umsatzverlauf') }}">Umsatzverlauf (Datum)</a></li>
         <li><a href="{{ url_for('umsatz_pro_jahr') }}">Umsatz pro Jahr</a></li>
         <li><a href="{{ url_for('endabrechnung_jahr') }}">Endabrechnung pro Jahr</a></li>
         <li><a href="{{ url_for('jahresvergleich') }}">Jahresvergleich</a></li>
-=======
         <li><a href="{{ url_for('umsatzverlauf') }}">Umsatzverlauf</a></li>
         <li><a href="{{ url_for('umsatz_pro_jahr') }}">Umsatz pro Jahr</a></li>
         <li><a href="{{ url_for('endabrechnung_jahr') }}">Endabrechnung pro Jahr</a></li>
-main
     </ul>
 
     <h2>Getränkebezogene Auswertungen</h2>
     <ul>
         <li><a href="{{ url_for('getraenkestatistik') }}">Getränkestatistik</a></li>
-eohd3q-codex/liste-der-verfügbaren-auswertungen-anzeigen
         <li><a href="{{ url_for('umsatz_getraenk') }}">Umsatz pro Getränk</a></li>
-=======
-main
     </ul>
 
     <h2>Finanzübersicht</h2>
     <ul>
         <li><a href="{{ url_for('umsatz_pro_teilnehmer') }}">Umsatz pro Teilnehmer</a></li>
-eohd3q-codex/liste-der-verfügbaren-auswertungen-anzeigen
         <li><a href="{{ url_for('finanzuebersicht') }}">Einnahmen/Ausgaben gegenüberstellen</a></li>
-=======
-main
     </ul>
 
     <br><a href="{{ url_for('index') }}">Zurück zur Startseite</a>
