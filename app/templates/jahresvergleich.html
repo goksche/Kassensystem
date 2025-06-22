@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Jahresvergleich</title>
+</head>
+<body>
+    <h1>Jahresvergleich</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Jahr</th>
+            <th>Anzahl Events</th>
+            <th>Teilnahmen</th>
+            <th>Umsatz (CHF)</th>
+        </tr>
+        {% for eintrag in daten %}
+        <tr>
+            <td>{{ eintrag.jahr }}</td>
+            <td>{{ eintrag.events }}</td>
+            <td>{{ eintrag.teilnehmer }}</td>
+            <td>{{ "%.2f"|format(eintrag.umsatz) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+</body>
+</html>
