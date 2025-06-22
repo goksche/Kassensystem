@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Finanzübersicht</title>
+</head>
+<body>
+    <h1>Finanzübersicht</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>Event</th>
+            <th>Umsatz (CHF)</th>
+            <th>Einnahmen (CHF)</th>
+            <th>Ausgaben (CHF)</th>
+            <th>Gewinn (CHF)</th>
+        </tr>
+        {% for e in daten %}
+        <tr>
+            <td>{{ e.event.name }}</td>
+            <td>{{ "%.2f"|format(e.umsatz) }}</td>
+            <td>{{ "%.2f"|format(e.einnahmen) }}</td>
+            <td>{{ "%.2f"|format(e.ausgaben) }}</td>
+            <td>{{ "%.2f"|format(e.gewinn) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+</body>
+</html>
