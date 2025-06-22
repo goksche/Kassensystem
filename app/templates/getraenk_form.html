@@ -3,22 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Getränk erfassen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Neues Getränk erfassen</h1>
-    <form method="POST">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" required><br><br>
+<body class="bg-gray-900 text-white min-h-screen">
 
-        <label for="preis">Preis (CHF):</label><br>
-        <input type="number" step="0.05" id="preis" name="preis" required><br><br>
+<div class="max-w-xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold mb-6 text-center">🥤 Neues Getränk erfassen</h1>
 
-        <label for="kategorie">Kategorie:</label><br>
-        <input type="text" id="kategorie" name="kategorie"><br><br>
+    <form method="POST" class="space-y-6 bg-white text-gray-900 rounded-lg p-6 shadow">
+        <div>
+            <label for="name" class="block font-semibold mb-1">Name</label>
+            <input type="text" id="name" name="name" required
+                   class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
 
-        <input type="submit" value="Speichern">
+        <div>
+            <label for="preis" class="block font-semibold mb-1">Preis (CHF)</label>
+            <input type="number" step="0.05" id="preis" name="preis" required
+                   class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+            <label for="kategorie" class="block font-semibold mb-1">Kategorie</label>
+            <input type="text" id="kategorie" name="kategorie"
+                   class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="text-right">
+            <a href="{{ url_for('index') }}" class="text-sm text-blue-300 hover:underline mr-4">Zurück</a>
+            <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700">Speichern</button>
+        </div>
     </form>
-    <br>
-    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+</div>
+
 </body>
 </html>
