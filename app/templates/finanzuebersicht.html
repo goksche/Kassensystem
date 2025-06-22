@@ -3,28 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Finanzübersicht</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Finanzübersicht</h1>
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>Event</th>
-            <th>Umsatz (CHF)</th>
-            <th>Einnahmen (CHF)</th>
-            <th>Ausgaben (CHF)</th>
-            <th>Gewinn (CHF)</th>
-        </tr>
-        {% for e in daten %}
-        <tr>
-            <td>{{ e.event.name }}</td>
-            <td>{{ "%.2f"|format(e.umsatz) }}</td>
-            <td>{{ "%.2f"|format(e.einnahmen) }}</td>
-            <td>{{ "%.2f"|format(e.ausgaben) }}</td>
-            <td>{{ "%.2f"|format(e.gewinn) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
-    <a href="{{ url_for('auswertungen_overview') }}">Zurück zur Übersicht</a>
+<body class="bg-gray-900 text-white min-h-screen">
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">💶 Finanzübersicht</h1>
+
+    <div class="bg-gray-800 p-4 rounded shadow-md">
+        <table class="w-full table-auto">
+            <thead>
+                <tr class="bg-gray-700">
+                    <th class="px-4 py-2 text-left">Event</th>
+                    <th class="px-4 py-2 text-right">Umsatz (CHF)</th>
+                    <th class="px-4 py-2 text-right">Einnahmen (CHF)</th>
+                    <th class="px-4 py-2 text-right">Ausgaben (CHF)</th>
+                    <th class="px-4 py-2 text-right">Gewinn (CHF)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in daten %}
+                <tr class="border-b border-gray-600">
+                    <td class="px-4 py-1">{{ e.event.name }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(e.umsatz) }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(e.einnahmen) }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(e.ausgaben) }}</td>
+                    <td class="px-4 py-1 text-right">{{ "%.2f"|format(e.gewinn) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-10">
+        <a href="{{ url_for('auswertungen_overview') }}" class="text-blue-400 hover:underline">Zurück zur Übersicht</a>
+    </div>
+</div>
+
 </body>
 </html>

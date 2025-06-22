@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmer pro Event</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Teilnehmerliste pro Event</h1>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <form method="get" action="{{ url_for('teilnehmerliste_pro_event') }}">
-        <label for="event">Event auswählen:</label>
-        <select name="event_id" id="event" onchange="this.form.submit()">
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-center mb-8">👥 Teilnehmerliste pro Event</h1>
+
+    <form method="get" action="{{ url_for('teilnehmerliste_pro_event') }}" class="mb-6 text-center">
+        <label for="event" class="mr-2">Event auswählen:</label>
+        <select name="event_id" id="event" onchange="this.form.submit()" class="text-black px-3 py-1 rounded">
             <option value="">-- bitte wählen --</option>
             {% for event in events %}
                 <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>{{ event.name }}</option>
@@ -18,25 +21,36 @@
     </form>
 
     {% if daten %}
-        <h2>Teilnehmer</h2>
-        <table border="1" cellpadding="6">
-            <tr>
-                <th>Name</th>
-                <th>Bezahlstatus</th>
-            </tr>
-            {% for name, status in daten %}
-            <tr>
-                <td>{{ name }}</td>
-                <td>{{ status }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <br>
-        <a href="{{ url_for('export_teilnehmerliste_event_csv', event_id=selected_event_id) }}">📥 CSV-Export</a> |
-        <a href="{{ url_for('export_teilnehmerliste_event_pdf', event_id=selected_event_id) }}" target="_blank">📄 PDF-Export</a>
+        <div class="bg-gray-800 p-4 rounded shadow-md">
+            <table class="w-full table-auto">
+                <thead>
+                    <tr class="bg-gray-700">
+                        <th class="px-4 py-2 text-left">Name</th>
+                        <th class="px-4 py-2 text-left">Bezahlstatus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for name, status in daten %}
+                    <tr class="border-b border-gray-600">
+                        <td class="px-4 py-1">{{ name }}</td>
+                        <td class="px-4 py-1">{{ status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 text-sm">
+            <a href="{{ url_for('export_teilnehmerliste_event_csv', event_id=selected_event_id) }}" class="text-blue-400 hover:underline">📥 CSV-Export</a>
+            |
+            <a href="{{ url_for('export_teilnehmerliste_event_pdf', event_id=selected_event_id) }}" target="_blank" class="text-blue-400 hover:underline">📄 PDF-Export</a>
+        </div>
     {% endif %}
 
-    <br><br>
-    <a href="{{ url_for('index') }}">Zurück zur Startseite</a>
+    <div class="text-center mt-10">
+        <a href="{{ url_for('index') }}" class="text-blue-400 hover:underline">Zurück zur Startseite</a>
+    </div>
+</div>
+
 </body>
 </html>
