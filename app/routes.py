@@ -79,8 +79,33 @@ def create_getraenk():
         getraenk = Getraenk(name=name, preis=preis, kategorie=kategorie)
         db.session.add(getraenk)
         db.session.commit()
-        return redirect(url_for("list_getraenke"))
-    return render_template("getraenk_form.html")
+        return redirect(url_for("create_getraenk"))
+
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
+    return render_template("getraenk_form.html", getraenke=getraenke)
+
+
+@app.route("/getraenk/edit/<int:getraenk_id>", methods=["GET", "POST"])
+def edit_getraenk(getraenk_id):
+    getraenk = Getraenk.query.get_or_404(getraenk_id)
+
+    if request.method == "POST":
+        getraenk.name = request.form["name"]
+        getraenk.preis = float(request.form["preis"])
+        getraenk.kategorie = request.form["kategorie"]
+        db.session.commit()
+        return redirect(url_for("create_getraenk"))
+
+    return render_template("getraenk_edit.html", getraenk=getraenk)
+
+
+@app.route("/getraenk/loeschen/<int:getraenk_id>")
+def delete_getraenk(getraenk_id):
+    getraenk = Getraenk.query.get_or_404(getraenk_id)
+    db.session.delete(getraenk)
+    db.session.commit()
+    return redirect(url_for("create_getraenk"))
+
 
 @app.route("/getraenke")
 def list_getraenke():
@@ -297,18 +322,6 @@ def teilnehmer_report_export():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=teilnehmer_report.csv"}
     )
-@app.route("/getraenk/edit/<int:getraenk_id>", methods=["GET", "POST"])
-def edit_getraenk(getraenk_id):
-    getraenk = Getraenk.query.get_or_404(getraenk_id)
-
-    if request.method == "POST":
-        getraenk.name = request.form["name"]
-        getraenk.preis = float(request.form["preis"])
-        getraenk.kategorie = request.form["kategorie"]
-        db.session.commit()
-        return redirect(url_for("index"))
-
-    return render_template("getraenk_edit.html", getraenk=getraenk)
 @app.route("/event/<int:event_id>/teilnehmer", methods=["GET", "POST"])
 def zuweise_teilnehmer(event_id):
     event = Event.query.get_or_404(event_id)
@@ -726,7 +739,7 @@ def export_umsatzverlauf_pdf():
     return response
 from flask import make_response, render_template, request, redirect, url_for
 import io
-from xhtml2pdf import pisa
+
 
 @app.route("/auswertung/einzelabrechnung_event/pdf")
 def einzelabrechnung_event_pdf():
