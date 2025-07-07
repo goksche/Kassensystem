@@ -21,17 +21,6 @@ def index():
         now=datetime.now()  # ← NEU hinzugefügt
     )
 
-@app.route("/event", methods=["GET", "POST"])
-def create_event():
-    if request.method == "POST":
-        name = request.form["name"]
-        datum = datetime.strptime(request.form["datum"], "%Y-%m-%d").date()
-        neues_event = Event(name=name, datum=datum)
-        db.session.add(neues_event)
-        db.session.commit()
-        return redirect(url_for("index"))
-    return render_template("event_form.html")
-
 @app.route("/event/edit/<int:event_id>", methods=["GET", "POST"])
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
@@ -39,7 +28,7 @@ def edit_event(event_id):
         event.name = request.form["name"]
         event.datum = datetime.strptime(request.form["datum"], "%Y-%m-%d").date()
         db.session.commit()
-        return redirect(url_for("index"))
+        return redirect(url_for("events_dashboard"))
     return render_template("event_edit.html", event=event)
 @app.route("/teilnehmer/neu", methods=["GET", "POST"])
 def create_teilnehmer():
@@ -1376,31 +1365,25 @@ def export_endabrechnung_jahr_pdf():
 def event_list():
     events = Event.query.order_by(Event.datum.desc()).all()  # ⬅ lädt alle Events
     return render_template("event_list.html", events=events)  # ⬅ übergibt sie an das Template
+@app.route("/event/loeschen/<int:event_id>")
+def delete_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    db.session.delete(event)
+    db.session.commit()
+    return redirect(url_for("events_dashboard"))
 
-@app.route("/events/dashboard")
+@app.route("/events/dashboard", methods=["GET", "POST"])
 def events_dashboard():
-    return render_template("events.html")
-@app.route("/event/start", methods=["GET", "POST"])
-def event_start():
+    if request.method == "POST":
+        name = request.form["name"]
+        datum = datetime.strptime(request.form["datum"], "%Y-%m-%d").date()
+        neues_event = Event(name=name, datum=datum)
+        db.session.add(neues_event)
+        db.session.commit()
+        return redirect(url_for("events_dashboard"))
+
     events = Event.query.order_by(Event.datum.desc()).all()
-    selected_event_id = request.args.get("event_id", type=int)
-
-    teilnehmer_liste = []
-    if selected_event_id:
-        teilnehmer_liste = (
-            db.session.query(TeilnehmerEvent)
-            .filter_by(event_id=selected_event_id)
-            .join(Teilnehmer)
-            .order_by(Teilnehmer.name)
-            .all()
-        )
-
-    return render_template(
-        "event_start.html",
-        events=events,
-        selected_event_id=selected_event_id,
-        teilnehmer_liste=teilnehmer_liste
-    )
+    return render_template("events.html", events=events)
 @app.route("/event/details/<int:event_id>")
 def event_details(event_id):
     event = Event.query.get_or_404(event_id)
@@ -1539,3 +1522,9 @@ def finanzuebersicht():
         )
         daten.append({"event": ev, "umsatz": umsatz, "einnahmen": einnahmen, "ausgaben": ausgaben, "gewinn": einnahmen + umsatz - ausgaben})
     return render_template("finanzuebersicht.html", daten=daten)
+@app.route("/teilnehmer/loeschen/<int:teilnehmer_id>")
+def delete_teilnehmer(teilnehmer_id):
+    teilnehmer = Teilnehmer.query.get_or_404(teilnehmer_id)
+    db.session.delete(teilnehmer)
+    db.session.commit()
+    return redirect(url_for("create_teilnehmer"))

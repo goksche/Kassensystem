@@ -1,46 +1,67 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Event Details</title>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Event Details – Kassensystem</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-6">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <h1 class="text-2xl font-bold mb-6">🎯 Event Details – {{ event.name }} ({{ event.datum.strftime('%d.%m.%Y') }})</h1>
-
-    <div class="bg-gray-800 rounded-lg shadow p-6">
-        <table class="w-full table-auto">
-            <thead>
-                <tr class="bg-gray-700">
-                    <th class="text-left px-4 py-2">Teilnehmer</th>
-                    <th class="text-right px-4 py-2">Betrag</th>
-                    <th class="text-left px-4 py-2">Status</th>
-                    <th class="text-right px-4 py-2">Aktion</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for eintrag in teilnehmer_liste %}
-                <tr class="border-b border-gray-600 hover:bg-gray-700">
-                    <td class="px-4 py-2">{{ eintrag.teilnehmer.name }}</td>
-                    <td class="px-4 py-2 text-right">
-                        {{ "%.2f"|format(eintrag.betrag or 0) }} CHF
-                    </td>
-                    <td class="px-4 py-2">{{ eintrag.bezahlt_status }}</td>
-                    <td class="px-4 py-2 text-right">
-                        <a href="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}"
-                           class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-                            ➡️ Erfassen
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <!-- Navigation -->
+  <nav class="bg-gray-800 p-4 flex justify-between">
+    <div class="text-xl font-bold">🍻 Kassensystem</div>
+    <div class="space-x-4">
+      <a href="/" class="hover:underline">Start</a>
+      <a href="/events/dashboard" class="hover:underline">Events</a>
+      <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
+      <a href="/getraenk" class="hover:underline">Getränke</a>
+      <a href="/auswertungen" class="hover:underline">Auswertungen</a>
     </div>
+  </nav>
 
-    <a href="{{ url_for('event_uebersicht') }}" class="inline-block mt-6 text-blue-400 hover:text-blue-600">⬅️ Zurück zur Eventübersicht</a>
+  <main class="flex-1 flex flex-col items-center justify-start p-8">
+    <div class="w-full max-w-5xl mx-auto">
+
+      <h1 class="text-2xl mb-4 font-bold">
+        🎯 Event Details – {{ event.name }} ({{ event.datum.strftime('%d.%m.%Y') }})
+      </h1>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-gray-700">
+            <tr>
+              <th class="px-4 py-2">Teilnehmer</th>
+              <th class="px-4 py-2">Betrag</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2 text-right">Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for teilnehmer in teilnehmer_liste %}
+            <tr class="border-b border-gray-700">
+              <td class="px-4 py-2">{{ teilnehmer.teilnehmer.name }}</td>
+              <td class="px-4 py-2">{{ teilnehmer.betrag|default("0.00") }} CHF</td>
+              <td class="px-4 py-2">{{ teilnehmer.bezahlt_status|default("offen") }}</td>
+              <td class="px-4 py-2 text-right">
+                <a href="/verkauf/{{ teilnehmer.id }}" class="bg-green-600 px-2 py-1 rounded inline-flex items-center">
+                  ➕ Erfassen
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="px-4 py-2 text-center">Keine Teilnehmer erfasst.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <br>
+      <a href="/events/dashboard" class="text-blue-400 hover:underline">← Zurück zum Dashboard</a>
+
+    </div>
+  </main>
 
 </body>
 </html>
