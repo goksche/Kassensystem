@@ -1,46 +1,66 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Event starten</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <title>Event starten – Kassensystem</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-<div class="max-w-4xl mx-auto px-4 py-10">
-    <h1 class="text-3xl font-bold text-center mb-8">🚀 Event starten</h1>
+  <!-- Navigation -->
+  <nav class="bg-gray-800 p-4 flex justify-between">
+    <div class="text-xl font-bold">🍻 Kassensystem</div>
+    <div class="space-x-4">
+      <a href="/" class="hover:underline">Start</a>
+      <a href="/events/dashboard" class="hover:underline">Events</a>
+      <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
+      <a href="/getraenk" class="hover:underline">Getränke</a>
+      <a href="/auswertungen" class="hover:underline">Auswertungen</a>
+    </div>
+  </nav>
 
-    <form method="get" action="{{ url_for('event_start') }}" class="mb-10 text-center">
-        <label for="event_id" class="mr-2">Event auswählen:</label>
-        <select name="event_id" id="event_id" onchange="this.form.submit()"
-                class="px-4 py-2 rounded text-black">
-            <option value="">-- bitte wählen --</option>
-            {% for e in events %}
-                <option value="{{ e.id }}" {% if selected_event_id == e.id %}selected{% endif %}>
-                    {{ e.name }} ({{ e.datum.strftime('%d.%m.%Y') }})
-                </option>
-            {% endfor %}
-        </select>
+  <!-- Inhalt -->
+  <main class="flex-1 flex flex-col items-center justify-start p-8 w-full max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">🚀 Event starten</h1>
+
+    <!-- Event-Auswahl -->
+    <form method="get" action="{{ url_for('event_start') }}" class="mb-4 text-center">
+      <label for="event_id" class="mr-2">Event auswählen:</label>
+      <select name="event_id" id="event_id" onchange="this.form.submit()"
+              class="px-4 py-2 rounded text-black">
+        <option value="">-- bitte wählen --</option>
+        {% for e in events %}
+          <option value="{{ e.id }}" {% if selected_event_id == e.id %}selected{% endif %}>
+            {{ e.name }} ({{ e.datum.strftime('%d.%m.%Y') }})
+          </option>
+        {% endfor %}
+      </select>
     </form>
 
+    <!-- Hinweis -->
+    <p class="mb-8 text-gray-400 text-center">Klick für Erfassung</p>
+
+    <!-- Teilnehmer-Kacheln -->
     {% if teilnehmer_liste %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {% for eintrag in teilnehmer_liste %}
-                <a href="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}"
-                   class="bg-white text-gray-900 p-4 rounded shadow hover:bg-blue-100 transition text-center">
-                    <div class="text-xl font-semibold">{{ eintrag.teilnehmer.name }}</div>
-                    <div class="text-sm text-gray-600 mt-1">Klick für Erfassung</div>
-                </a>
-            {% endfor %}
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {% for eintrag in teilnehmer_liste %}
+          <a href="{{ url_for('verkauf', teilnehmer_event_id=eintrag.id) }}"
+             class="bg-white text-gray-900 p-8 rounded shadow hover:bg-blue-100 transition text-center">
+            <div class="text-2xl font-bold">{{ eintrag.teilnehmer.name }}</div>
+          </a>
+        {% endfor %}
+      </div>
     {% elif selected_event_id %}
-        <p class="text-center text-gray-400">Keine Teilnehmer für dieses Event zugewiesen.</p>
+      <p class="text-center text-gray-400">Keine Teilnehmer für dieses Event zugewiesen.</p>
     {% endif %}
 
+    <!-- Zurück-Button -->
     <div class="mt-10 text-center">
-        <a href="{{ url_for('events_dashboard') }}" class="text-blue-400 hover:underline">Zurück</a>
+      <a href="{{ url_for('events_dashboard') }}" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+        Zurück
+      </a>
     </div>
-</div>
+  </main>
 
 </body>
 </html>

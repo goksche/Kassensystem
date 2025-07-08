@@ -42,9 +42,9 @@
       <div class="overflow-x-auto">
         <table class="w-full table-fixed text-left">
           <colgroup>
-            <col class="w-1/6"> <!-- Name schmaler -->
-            <col class="w-1/6"> <!-- Datum fix -->
-            <col class="w-4/6"> <!-- Aktionen flexibel -->
+            <col class="w-1/6">
+            <col class="w-1/6">
+            <col class="w-4/6">
           </colgroup>
           <thead>
             <tr class="bg-gray-700">
@@ -60,7 +60,7 @@
               <td class="px-4 py-2">{{ event.datum.strftime('%Y-%m-%d') }}</td>
               <td class="px-4 py-2 text-right">
                 <div class="inline-flex justify-end gap-1 overflow-x-auto whitespace-nowrap">
-                 <a href="/event/start/{{ event.id }}" class="bg-green-600 text-black px-2 py-1 rounded">Start</a>
+                  <a href="{{ url_for('event_start') }}?event_id={{ event.id }}" class="bg-green-600 text-black px-2 py-1 rounded">Start</a>
                   <a href="/event/edit/{{ event.id }}" class="bg-yellow-600 text-black px-2 py-1 rounded">Bearbeiten</a>
                   <a href="/event/{{ event.id }}/teilnehmer" class="bg-blue-500 px-2 py-1 rounded">Teilnehmer</a>
                   <a href="/event/details/{{ event.id }}" class="bg-purple-500 px-2 py-1 rounded">Details</a>

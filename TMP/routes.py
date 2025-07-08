@@ -31,21 +31,20 @@ def edit_event(event_id):
         return redirect(url_for("events_dashboard"))
     return render_template("event_edit.html", event=event)
 @app.route("/teilnehmer/neu", methods=["GET", "POST"])
-def teilnehmer_create():
-    if request.method == "POST":
-        name = request.form["name"].strip()
-
-        exists = Teilnehmer.query.filter_by(name=name).first()
-        if exists:
-            return "Teilnehmer existiert bereits!", 400
-
-        neuer_teilnehmer = Teilnehmer(name=name)
-        db.session.add(neuer_teilnehmer)
-        db.session.commit()
-        return redirect(url_for("teilnehmer_create"))
-
+def create_teilnehmer():
     teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
-    return render_template("teilnehmer_create.html", teilnehmer_liste=teilnehmer_liste)
+
+    if request.method == "POST":
+        name = request.form["name"]
+        teilnehmer = Teilnehmer(name=name)
+        db.session.add(teilnehmer)
+        db.session.commit()
+        return redirect(url_for("create_teilnehmer"))
+
+    return render_template(
+        "teilnehmer_create.html",
+        teilnehmer_liste=teilnehmer_liste
+    )
 
 @app.route("/teilnehmer/edit/<int:teilnehmer_id>", methods=["GET", "POST"])
 def edit_teilnehmer(teilnehmer_id):
@@ -61,24 +60,19 @@ def edit_teilnehmer(teilnehmer_id):
 
     return render_template("teilnehmer_edit.html", teilnehmer=teilnehmer)
 @app.route("/getraenk", methods=["GET", "POST"])
-def getraenk():
+def create_getraenk():
     if request.method == "POST":
-        name = request.form["name"].strip()
+        name = request.form["name"]
         preis = float(request.form["preis"])
-        kategorie = request.form["kategorie"].strip()
-
-        # Prüfe ob Name existiert
-        exists = Getraenk.query.filter_by(name=name).first()
-        if exists:
-            return "Getränk existiert bereits!", 400
-
-        neues_getraenk = Getraenk(name=name, preis=preis, kategorie=kategorie)
-        db.session.add(neues_getraenk)
+        kategorie = request.form["kategorie"]
+        getraenk = Getraenk(name=name, preis=preis, kategorie=kategorie)
+        db.session.add(getraenk)
         db.session.commit()
-        return redirect(url_for("getraenk"))
+        return redirect(url_for("create_getraenk"))
 
-    getraenke = Getraenk.query.order_by(Getraenk.kategorie, Getraenk.name).all()
+    getraenke = Getraenk.query.order_by(Getraenk.kategorie).all()
     return render_template("getraenk_form.html", getraenke=getraenke)
+
 
 @app.route("/getraenk/edit/<int:getraenk_id>", methods=["GET", "POST"])
 def edit_getraenk(getraenk_id):
@@ -1360,6 +1354,12 @@ def export_endabrechnung_jahr_pdf():
 def event_list():
     events = Event.query.order_by(Event.datum.desc()).all()  # ⬅ lädt alle Events
     return render_template("event_list.html", events=events)  # ⬅ übergibt sie an das Template
+@app.route("/event/loeschen/<int:event_id>")
+def delete_event(event_id):
+    event = Event.query.get_or_404(event_id)
+    db.session.delete(event)
+    db.session.commit()
+    return redirect(url_for("events_dashboard"))
 
 @app.route("/events/dashboard", methods=["GET", "POST"])
 def events_dashboard():
@@ -1495,14 +1495,21 @@ def delete_teilnehmer(teilnehmer_id):
     db.session.delete(teilnehmer)
     db.session.commit()
     return redirect(url_for("create_teilnehmer"))
+@app.route("/event/start", methods=["GET"])
+# EVENT LÖSCHEN – SICHER MIT VERKNÜPFUNGEN
+
 @app.route("/event/loeschen/<int:event_id>")
 def delete_event(event_id):
+    # Zuerst alle Teilnehmer-Zuweisungen zu diesem Event löschen:
     TeilnehmerEvent.query.filter_by(event_id=event_id).delete()
+    # Danach Event selbst löschen:
     event = Event.query.get_or_404(event_id)
     db.session.delete(event)
     db.session.commit()
     return redirect(url_for("events_dashboard"))
 
+
+# EVENT STARTEN
 
 @app.route("/event/start", methods=["GET"])
 def event_start():
@@ -1512,7 +1519,8 @@ def event_start():
     teilnehmer_liste = []
     if selected_event_id:
         teilnehmer_events = TeilnehmerEvent.query.filter_by(event_id=selected_event_id).all()
-        teilnehmer_liste.extend(teilnehmer_events)
+        for te in teilnehmer_events:
+            teilnehmer_liste.append(te)
 
     return render_template(
         "event_start.html",
@@ -1522,6 +1530,8 @@ def event_start():
     )
 
 
+# VERKAUF – GETRÄNKE BUCHEN PRO TEILNEHMER
+
 @app.route("/verkauf/<int:teilnehmer_event_id>", methods=["GET", "POST"])
 def verkauf(teilnehmer_event_id):
     eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
@@ -1529,7 +1539,7 @@ def verkauf(teilnehmer_event_id):
 
     if request.method == "POST":
         getraenk_id = int(request.form["getraenk_id"])
-        menge = 1  # Fix auf +1 Klick
+        menge = int(request.form.get("menge", 1))
         verkauf = Verkauf(
             teilnehmer_event_id=eintrag.id,
             getraenk_id=getraenk_id,
@@ -1542,30 +1552,24 @@ def verkauf(teilnehmer_event_id):
     verkaufe = (
         db.session.query(
             Getraenk.name,
-            func.sum(Verkauf.menge),
-            func.sum(Verkauf.menge * Getraenk.preis),
-            func.min(Verkauf.id)
+            Verkauf.menge,
+            (Verkauf.menge * Getraenk.preis).label("betrag"),
+            Verkauf.id
         )
         .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
         .filter(Verkauf.teilnehmer_event_id == eintrag.id)
-        .group_by(Getraenk.name)
         .all()
-    )
-
-    gesamtbetrag = (
-        db.session.query(func.sum(Verkauf.menge * Getraenk.preis))
-        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-        .filter(Verkauf.teilnehmer_event_id == eintrag.id)
-        .scalar() or 0.0
     )
 
     return render_template(
         "verkauf_form.html",
         eintrag=eintrag,
         getraenke=getraenke,
-        verkaufe=verkaufe,
-        gesamtbetrag=gesamtbetrag
+        verkaufe=verkaufe
     )
+
+
+# VERKAUF LÖSCHEN MIT PASSWORT
 
 @app.route("/verkauf/loeschen/<int:verkauf_id>", methods=["POST"])
 def delete_verkauf(verkauf_id):
@@ -1573,18 +1577,7 @@ def delete_verkauf(verkauf_id):
     if passwort != "1818":
         return "Falsches Passwort!", 403
 
-    menge_zum_loeschen = int(request.form.get("menge", 0))
-    if menge_zum_loeschen <= 0:
-        return "Ungültige Menge!", 400
-
     verkauf = Verkauf.query.get_or_404(verkauf_id)
-
-    if verkauf.menge > menge_zum_loeschen:
-        verkauf.menge -= menge_zum_loeschen
-        db.session.commit()
-    else:
-        db.session.delete(verkauf)
-        db.session.commit()
-
+    db.session.delete(verkauf)
+    db.session.commit()
     return redirect(request.referrer or url_for("index"))
-
