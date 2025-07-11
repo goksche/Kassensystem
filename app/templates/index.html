@@ -35,13 +35,13 @@
 </a>
 
             <!-- Teilnehmer -->
-            <a href="{{ url_for('create_teilnehmer') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+            <a href="{{ url_for('teilnehmer_create') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
                 <div class="text-xl font-semibold mb-1">👥 Teilnehmer</div>
                 <p class="text-sm text-gray-600">Teilnehmer erstellen & verwalten</p>
             </a>
 
             <!-- Getränke -->
-            <a href="{{ url_for('create_getraenk') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
+            <a href="{{ url_for('getraenk') }}" class="bg-white text-gray-900 rounded-xl p-6 shadow hover:bg-blue-100 transition">
                 <div class="text-xl font-semibold mb-1">🥤 Getränke</div>
                 <p class="text-sm text-gray-600">Getränke erfassen & anzeigen</p>
             </a>
@@ -55,7 +55,7 @@
 
         <!-- Footer -->
         <footer class="text-center mt-16 text-gray-500 text-sm">
-            &copy; {{ now.year }} Dartkassensystem – Version 2.4
+            &copy; {{ now.year }} Dartkassensystem – Version 3.5
         </footer>
     </div>
 

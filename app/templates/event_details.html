@@ -1,67 +1,53 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>Event Details – Kassensystem</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+{% extends "base.html" %}
 
-  <!-- Navigation -->
-  <nav class="bg-gray-800 p-4 flex justify-between">
-    <div class="text-xl font-bold">🍻 Kassensystem</div>
-    <div class="space-x-4">
-      <a href="/" class="hover:underline">Start</a>
-      <a href="/events/dashboard" class="hover:underline">Events</a>
-      <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
-      <a href="/getraenk" class="hover:underline">Getränke</a>
-      <a href="/auswertungen" class="hover:underline">Auswertungen</a>
-    </div>
-  </nav>
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold text-center mb-6">
+        🎯 Event Details – {{ event.name }} ({{ event.datum }})
+    </h1>
 
-  <main class="flex-1 flex flex-col items-center justify-start p-8">
-    <div class="w-full max-w-5xl mx-auto">
-
-      <h1 class="text-2xl mb-4 font-bold">
-        🎯 Event Details – {{ event.name }} ({{ event.datum.strftime('%d.%m.%Y') }})
-      </h1>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
-          <thead class="bg-gray-700">
-            <tr>
-              <th class="px-4 py-2">Teilnehmer</th>
-              <th class="px-4 py-2">Betrag</th>
-              <th class="px-4 py-2">Status</th>
-              <th class="px-4 py-2 text-right">Aktion</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for teilnehmer in teilnehmer_liste %}
-            <tr class="border-b border-gray-700">
-              <td class="px-4 py-2">{{ teilnehmer.teilnehmer.name }}</td>
-              <td class="px-4 py-2">{{ teilnehmer.betrag|default("0.00") }} CHF</td>
-              <td class="px-4 py-2">{{ teilnehmer.bezahlt_status|default("offen") }}</td>
-              <td class="px-4 py-2 text-right">
-                <a href="/verkauf/{{ teilnehmer.id }}" class="bg-green-600 px-2 py-1 rounded inline-flex items-center">
-                  ➕ Erfassen
-                </a>
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="4" class="px-4 py-2 text-center">Keine Teilnehmer erfasst.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
+    {% if teilnehmer_liste %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-700 text-white">
+                    <th class="px-4 py-2">Teilnehmer</th>
+                    <th class="px-4 py-2">Betrag</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Aktion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teilnehmer in teilnehmer_liste %}
+                <tr class="border-b border-gray-600 hover:bg-gray-800">
+                    <td class="px-4 py-2">{{ teilnehmer.teilnehmer.name }}</td>
+                    <td class="px-4 py-2">{{ teilnehmer.betrag }} CHF</td>
+                    <td class="px-4 py-2">
+                        <form action="{{ url_for('update_status', teilnehmer_event_id=teilnehmer.id) }}" method="POST" class="flex items-center gap-2">
+                            <select name="bezahlt_status" class="text-black rounded px-2 py-1">
+                                <option value="offen" {% if teilnehmer.bezahlt_status == 'offen' %}selected{% endif %}>Offen</option>
+                                <option value="bar" {% if teilnehmer.bezahlt_status == 'bar' %}selected{% endif %}>Bar</option>
+                                <option value="twint" {% if teilnehmer.bezahlt_status == 'twint' %}selected{% endif %}>Twint</option>
+                                <option value="schulden" {% if teilnehmer.bezahlt_status == 'schulden' %}selected{% endif %}>Schulden</option>
+                            </select>
+                            <input type="password" name="passwort" placeholder="PW" class="rounded px-2 py-1 text-black">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">Speichern</button>
+                        </form>
+                    </td>
+                    <td class="px-4 py-2">
+                        <a href="{{ url_for('verkauf', teilnehmer_event_id=teilnehmer.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Getränke erfassen</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
-      </div>
-
-      <br>
-      <a href="/events/dashboard" class="text-blue-400 hover:underline">← Zurück zum Dashboard</a>
-
     </div>
-  </main>
+    {% else %}
+    <p class="text-center text-gray-400">Keine Teilnehmer gefunden.</p>
+    {% endif %}
 
-</body>
-</html>
+    <div class="mt-6 text-center">
+        <a href="{{ url_for('events_dashboard') }}" class="text-blue-400 hover:underline">← Zurück zum Dashboard</a>
+    </div>
+</div>
+{% endblock %}

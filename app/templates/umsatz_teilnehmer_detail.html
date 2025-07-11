@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧑‍🤝‍🧑 Umsatz pro Teilnehmer – Kassensystem</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <nav class="bg-gray-800 p-4 flex justify-between">
+    <div class="text-xl font-bold">🍻 Kassensystem</div>
+    <div class="space-x-4">
+      <a href="/" class="hover:underline">Start</a>
+      <a href="/events/dashboard" class="hover:underline">Events</a>
+      <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
+      <a href="/getraenk" class="hover:underline">Getränke</a>
+      <a href="/auswertungen" class="underline">Auswertungen</a>
+    </div>
+  </nav>
+
+  <main class="flex-1 flex flex-col items-center justify-start p-8 w-full max-w-6xl mx-auto">
+
+    <h1 class="text-3xl font-bold mb-4 text-center">🧑‍🤝‍🧑 Umsatz pro Teilnehmer</h1>
+    <p class="mb-8 text-gray-400 text-center">Wer hat wie viel konsumiert? Filtern nach Zeitraum und Person.</p>
+
+    <form method="GET" action="" class="w-full max-w-4xl mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="block mb-1">Von:</label>
+        <input type="date" name="von" value="{{ request.args.get('von', '') }}" class="w-full p-2 rounded text-black">
+      </div>
+      <div>
+        <label class="block mb-1">Bis:</label>
+        <input type="date" name="bis" value="{{ request.args.get('bis', '') }}" class="w-full p-2 rounded text-black">
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded w-full">
+          Filtern
+        </button>
+      </div>
+    </form>
+
+    <div class="overflow-x-auto w-full mb-6">
+      <table class="w-full text-left">
+        <thead class="bg-gray-700">
+          <tr>
+            <th class="px-4 py-2">Teilnehmer</th>
+            <th class="px-4 py-2">Umsatz (CHF)</th>
+          </tr>
+        </thead>
+        <tbody class="bg-gray-800">
+          {% for row in teilnehmerdaten %}
+          <tr class="border-b border-gray-700">
+            <td class="px-4 py-2">{{ row.name }}</td>
+            <td class="px-4 py-2">{{ "%.2f"|format(row.umsatz) }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="2" class="px-4 py-2 text-center text-gray-400">Keine Daten gefunden.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if umsatz_summe %}
+        <tfoot>
+          <tr class="bg-gray-700 font-bold">
+            <td class="px-4 py-2">Gesamt</td>
+            <td class="px-4 py-2">{{ "%.2f"|format(umsatz_summe) }} CHF</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 w-full max-w-4xl mb-8">
+      <form method="GET" action="/export/umsatz_teilnehmer/pdf" class="flex-1">
+        <input type="hidden" name="von" value="{{ request.args.get('von', '') }}">
+        <input type="hidden" name="bis" value="{{ request.args.get('bis', '') }}">
+        <button type="submit" class="bg-green-600 hover:bg-green-500 text-white w-full px-4 py-2 rounded">
+          📄 PDF Export
+        </button>
+      </form>
+      <form method="GET" action="/export/umsatz_teilnehmer/csv" class="flex-1">
+        <input type="hidden" name="von" value="{{ request.args.get('von', '') }}">
+        <input type="hidden" name="bis" value="{{ request.args.get('bis', '') }}">
+        <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-black w-full px-4 py-2 rounded">
+          📊 Excel Export
+        </button>
+      </form>
+    </div>
+
+    <div class="text-center">
+      <a href="/auswertungen" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+        Zurück zur Übersicht
+      </a>
+    </div>
+
+  </main>
+
+</body>
+</html>

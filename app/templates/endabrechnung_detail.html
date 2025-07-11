@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧾 Einzelabrechnung – Kassensystem</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <nav class="bg-gray-800 p-4 flex justify-between">
+    <div class="text-xl font-bold">🍻 Kassensystem</div>
+    <div class="space-x-4">
+      <a href="/" class="hover:underline">Start</a>
+      <a href="/events/dashboard" class="hover:underline">Events</a>
+      <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
+      <a href="/getraenk" class="hover:underline">Getränke</a>
+      <a href="/auswertungen" class="underline">Auswertungen</a>
+    </div>
+  </nav>
+
+  <main class="flex-1 flex flex-col items-center justify-start p-8 w-full max-w-6xl mx-auto">
+
+    <h1 class="text-3xl font-bold mb-4 text-center">🧾 Einzelabrechnung</h1>
+    <p class="mb-8 text-gray-400 text-center">
+      Zeigt die Abrechnung für einen ausgewählten Teilnehmer und Event.
+    </p>
+
+    <!-- Filter -->
+    <form method="GET" action="" class="w-full max-w-4xl mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="block mb-1">Teilnehmer:</label>
+        <select name="teilnehmer_id" class="w-full p-2 rounded text-black">
+          <option value="">-- bitte wählen --</option>
+          {% for t in teilnehmerliste %}
+            <option value="{{ t.id }}"
+              {% if request.args.get('teilnehmer_id') == t.id|string %}selected{% endif %}>
+              {{ t.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block mb-1">Event:</label>
+        <select name="event_id" class="w-full p-2 rounded text-black">
+          <option value="">-- bitte wählen --</option>
+          {% for e in eventliste %}
+            <option value="{{ e.id }}"
+              {% if request.args.get('event_id') == e.id|string %}selected{% endif %}>
+              {{ e.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded w-full">
+          Ansehen
+        </button>
+      </div>
+    </form>
+
+    <!-- Tabelle -->
+    <div class="overflow-x-auto w-full mb-6">
+      <table class="w-full text-left">
+        <thead class="bg-gray-700">
+          <tr>
+            <th class="px-4 py-2">Getränk</th>
+            <th class="px-4 py-2">Menge</th>
+            <th class="px-4 py-2">Betrag (CHF)</th>
+          </tr>
+        </thead>
+        <tbody class="bg-gray-800">
+          {% for row in abrechnungsdaten %}
+          <tr class="border-b border-gray-700">
+            <td class="px-4 py-2">{{ row.name }}</td>
+            <td class="px-4 py-2">{{ row.menge }}</td>
+            <td class="px-4 py-2">{{ "%.2f"|format(row.betrag) }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" class="px-4 py-2 text-center text-gray-400">Keine Daten gefunden.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if abrechnung_summe %}
+        <tfoot>
+          <tr class="bg-gray-700 font-bold">
+            <td class="px-4 py-2">Gesamt</td>
+            <td class="px-4 py-2"></td>
+            <td class="px-4 py-2">{{ "%.2f"|format(abrechnung_summe) }} CHF</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+    <!-- Export -->
+    <div class="flex flex-col sm:flex-row gap-4 w-full max-w-4xl mb-8">
+      <form method="GET" action="/export/einzelabrechnung/pdf" class="flex-1">
+        <input type="hidden" name="teilnehmer_id" value="{{ request.args.get('teilnehmer_id', '') }}">
+        <input type="hidden" name="event_id" value="{{ request.args.get('event_id', '') }}">
+        <button type="submit"
+                class="bg-green-600 hover:bg-green-500 text-white w-full px-4 py-2 rounded">
+          📄 PDF Export
+        </button>
+      </form>
+      <form method="GET" action="/export/einzelabrechnung/csv" class="flex-1">
+        <input type="hidden" name="teilnehmer_id" value="{{ request.args.get('teilnehmer_id', '') }}">
+        <input type="hidden" name="event_id" value="{{ request.args.get('event_id', '') }}">
+        <button type="submit"
+                class="bg-yellow-500 hover:bg-yellow-400 text-black w-full px-4 py-2 rounded">
+          📊 Excel Export
+        </button>
+      </form>
+    </div>
+
+    <div class="text-center">
+      <a href="/auswertungen" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+        Zurück zur Übersicht
+      </a>
+    </div>
+
+  </main>
+
+</body>
+</html>

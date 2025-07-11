@@ -89,7 +89,7 @@ def edit_getraenk(getraenk_id):
         getraenk.preis = float(request.form["preis"])
         getraenk.kategorie = request.form["kategorie"]
         db.session.commit()
-        return redirect(url_for("create_getraenk"))
+        return redirect(url_for("getraenk"))
 
     return render_template("getraenk_edit.html", getraenk=getraenk)
 
@@ -99,7 +99,7 @@ def delete_getraenk(getraenk_id):
     getraenk = Getraenk.query.get_or_404(getraenk_id)
     db.session.delete(getraenk)
     db.session.commit()
-    return redirect(url_for("create_getraenk"))
+    return redirect(url_for("getraenk"))
 
 
 @app.route("/getraenke")
@@ -327,52 +327,6 @@ def zuweise_teilnehmer(event_id):
 
     bestehende_ids = [te.teilnehmer_id for te in TeilnehmerEvent.query.filter_by(event_id=event.id).all()]
     return render_template("event_teilnehmer_zuweisung.html", event=event, teilnehmer=alle_teilnehmer, bestehende_ids=bestehende_ids)
-@app.route("/auswertung/umsatz_jahr")
-def umsatz_pro_jahr():
-    daten = (
-        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
-        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-        .group_by("jahr")
-        .order_by("jahr")
-        .all()
-    )
-    return render_template("umsatz_jahr.html", daten=daten)
-
-@app.route("/auswertung/umsatz_jahr/export_csv")
-def export_umsatz_pro_jahr_csv():
-    daten = (
-        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
-        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-        .group_by("jahr")
-        .order_by("jahr")
-        .all()
-    )
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Jahr", "Umsatz CHF"])
-
-    for row in daten:
-        writer.writerow([row[0], f"{row[1]:.2f}"])
-
-    output.seek(0)
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=umsatz_pro_jahr.csv"}
-    )
-@app.route("/auswertung/umsatz_teilnehmer")
-def umsatz_pro_teilnehmer():
-    daten = (
-        db.session.query(Teilnehmer.name, func.sum(Getraenk.preis))
-        .join(TeilnehmerEvent, Teilnehmer.id == TeilnehmerEvent.teilnehmer_id)
-        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-        .group_by(Teilnehmer.id)
-        .order_by(func.sum(Getraenk.preis).desc())
-        .all()
-    )
-    return render_template("umsatz_teilnehmer.html", daten=daten)
 
 @app.route("/auswertung/umsatz_teilnehmer/export_csv")
 def export_umsatz_pro_teilnehmer_csv():
@@ -400,15 +354,6 @@ def export_umsatz_pro_teilnehmer_csv():
         headers={"Content-Disposition": "attachment; filename=umsatz_pro_teilnehmer.csv"}
     )
 @app.route("/auswertung/getraenkestatistik")
-def getraenkestatistik():
-    daten = (
-        db.session.query(Getraenk.name, func.count(Verkauf.id), func.sum(Getraenk.preis))
-        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
-        .group_by(Getraenk.id)
-        .order_by(func.count(Verkauf.id).desc())
-        .all()
-    )
-    return render_template("getraenkestatistik.html", daten=daten)
 
 @app.route("/auswertung/getraenkestatistik/export_csv")
 def export_getraenkestatistik_csv():
@@ -433,102 +378,8 @@ def export_getraenkestatistik_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=getraenkestatistik.csv"}
     )
-@app.route("/auswertung/verbrauch_pro_teilnehmer")
-def verbrauch_pro_teilnehmer():
-    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
-    daten = []
 
-    for t in teilnehmer_liste:
-        # Gesamtverbrauch
-        gesamt = (
-            db.session.query(func.sum(Getraenk.preis))
-            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .scalar() or 0.0
-        )
 
-        # Jahresverbrauch
-        jahre = (
-            db.session.query(func.strftime('%Y', Verkauf.zeitpunkt), func.sum(Getraenk.preis))
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .order_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .all()
-        )
-
-        # Eventverbrauch
-        events = (
-            db.session.query(Event.name, func.sum(Getraenk.preis))
-            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
-            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(Event.name)
-            .order_by(Event.datum)
-            .all()
-        )
-
-        daten.append({
-            "teilnehmer": t.name,
-            "gesamt": gesamt,
-            "jahre": jahre,
-            "events": events
-        })
-
-    return render_template("verbrauch_teilnehmer.html", daten=daten)
-
-@app.route("/auswertung/verbrauch_pro_teilnehmer/export_csv")
-def export_verbrauch_pro_teilnehmer_csv():
-    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Teilnehmer", "Kategorie", "Bezeichnung", "Betrag CHF"])
-
-    for t in teilnehmer_liste:
-        gesamt = (
-            db.session.query(func.sum(Getraenk.preis))
-            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .scalar() or 0.0
-        )
-        writer.writerow([t.name, "Gesamt", "", f"{gesamt:.2f}"])
-
-        jahre = (
-            db.session.query(func.strftime('%Y', Verkauf.zeitpunkt), func.sum(Getraenk.preis))
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .order_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .all()
-        )
-        for jahr, betrag in jahre:
-            writer.writerow([t.name, "Jahr", jahr, f"{betrag:.2f}"])
-
-        events = (
-            db.session.query(Event.name, func.sum(Getraenk.preis))
-            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
-            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(Event.name)
-            .order_by(Event.datum)
-            .all()
-        )
-        for eventname, betrag in events:
-            writer.writerow([t.name, "Event", eventname, f"{betrag:.2f}"])
-
-    output.seek(0)
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=verbrauch_pro_teilnehmer.csv"}
-    )
 @app.route("/auswertung/teilnehmerliste")
 def teilnehmerliste():
     daten = (
@@ -538,7 +389,7 @@ def teilnehmerliste():
         .order_by(Teilnehmer.name)
         .all()
     )
-    return render_template("teilnehmerliste.html", daten=daten)
+    return render_template("teilnehmerliste_detail.html", daten=daten)
 
 @app.route("/auswertung/teilnehmerliste/export_csv")
 def export_teilnehmerliste_csv():
@@ -838,30 +689,7 @@ def export_umsatz_pdf():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=umsatz_pro_event.pdf'
     return response
-@app.route("/export/umsatz_jahr/pdf")
-def export_umsatz_pro_jahr_pdf():
-    daten = (
-        db.session.query(func.strftime('%Y', Verkauf.zeitpunkt).label("jahr"), func.sum(Getraenk.preis))
-        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-        .group_by("jahr")
-        .order_by("jahr")
-        .all()
-    )
 
-    gesamtumsatz = sum(row[1] or 0 for row in daten)
-
-    html = render_template("umsatz_pro_jahr_pdf.html", daten=daten, gesamtumsatz=gesamtumsatz)
-
-    pdf_puffer = io.BytesIO()
-    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
-
-    if pisa_status.err:
-        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
-
-    response = make_response(pdf_puffer.getvalue())
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=umsatz_pro_jahr.pdf'
-    return response
 @app.route("/export/umsatz_teilnehmer/pdf")
 def export_umsatz_pro_teilnehmer_pdf():
     daten = (
@@ -913,62 +741,7 @@ def export_getraenkestatistik_pdf():
     response.headers['Content-Disposition'] = 'inline; filename=getraenkestatistik.pdf'
     return response
 @app.route("/export/verbrauch_teilnehmer/pdf")
-def export_verbrauch_pro_teilnehmer_pdf():
-    teilnehmer_liste = Teilnehmer.query.order_by(Teilnehmer.name).all()
-    daten = []
 
-    for t in teilnehmer_liste:
-        # Gesamtverbrauch
-        gesamt = (
-            db.session.query(func.sum(Getraenk.preis))
-            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .scalar() or 0.0
-        )
-
-        # Jahresverbrauch
-        jahre = (
-            db.session.query(func.strftime('%Y', Verkauf.zeitpunkt), func.sum(Getraenk.preis))
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .order_by(func.strftime('%Y', Verkauf.zeitpunkt))
-            .all()
-        )
-
-        # Eventverbrauch
-        events = (
-            db.session.query(Event.name, func.sum(Getraenk.preis))
-            .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
-            .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
-            .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
-            .filter(TeilnehmerEvent.teilnehmer_id == t.id)
-            .group_by(Event.name)
-            .order_by(Event.datum)
-            .all()
-        )
-
-        daten.append({
-            "teilnehmer": t.name,
-            "gesamt": gesamt,
-            "jahre": jahre,
-            "events": events
-        })
-
-    html = render_template("verbrauch_pro_teilnehmer_pdf.html", daten=daten)
-
-    pdf_puffer = io.BytesIO()
-    pisa_status = pisa.CreatePDF(src=html, dest=pdf_puffer)
-
-    if pisa_status.err:
-        return f"Fehler beim Erstellen des PDFs: {pisa_status.err}"
-
-    response = make_response(pdf_puffer.getvalue())
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=verbrauch_pro_teilnehmer.pdf'
-    return response
 @app.route("/export/teilnehmerliste/pdf")
 def export_teilnehmerliste_pdf():
     daten = (
@@ -1400,8 +1173,10 @@ def event_details(event_id):
         "event_details.html",
         event=event,
         teilnehmer_liste=teilnehmer_liste,
-        abgeschlossen=abgeschlossen
+        abgeschlossen=abgeschlossen,
+        now=datetime.now()
     )
+
 @app.route("/bezahlstatus/<int:teilnehmer_event_id>", methods=["POST"])
 def bezahlstatus_aendern(teilnehmer_event_id):
     eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
@@ -1522,10 +1297,247 @@ def event_start():
     )
 
 
+@app.route("/verkauf/loeschen/<int:verkauf_id>", methods=["POST"])
+def delete_verkauf(verkauf_id):
+    passwort = request.form.get("passwort")
+    if passwort != "1818":
+        return "Falsches Passwort!", 403
+
+    menge_zum_loeschen = int(request.form.get("menge", 0))
+    if menge_zum_loeschen <= 0:
+        return "Ungültige Menge!", 400
+
+    verkauf = Verkauf.query.get_or_404(verkauf_id)
+
+    if verkauf.menge > menge_zum_loeschen:
+        verkauf.menge -= menge_zum_loeschen
+        db.session.commit()
+    else:
+        db.session.delete(verkauf)
+        db.session.commit()
+
+    return redirect(request.referrer or url_for("index"))
+@app.route("/auswertung/umsatz_event", methods=["GET"])
+def auswertung_umsatz_event():
+    von = request.args.get("von")
+    bis = request.args.get("bis")
+
+    query = (
+        db.session.query(
+            Event.name,
+            Event.datum,
+            func.sum(Verkauf.menge * Getraenk.preis).label("umsatz")
+        )
+        .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+    )
+
+    if von:
+        query = query.filter(Event.datum >= von)
+    if bis:
+        query = query.filter(Event.datum <= bis)
+
+    query = query.group_by(Event.id).order_by(Event.datum.desc())
+    umsatz_daten = query.all()
+
+    umsatz_summe = sum([row.umsatz for row in umsatz_daten]) if umsatz_daten else 0
+
+    return render_template(
+        "umsatz_event_detail.html",
+        umsatz_daten=umsatz_daten,
+        umsatz_summe=umsatz_summe
+    )
+@app.route("/auswertung/umsatz_teilnehmer", methods=["GET"])
+def auswertung_umsatz_teilnehmer():
+    von = request.args.get("von")
+    bis = request.args.get("bis")
+
+    query = (
+        db.session.query(
+            Teilnehmer.name,
+            func.sum(Verkauf.menge * Getraenk.preis).label("umsatz")
+        )
+        .join(TeilnehmerEvent, TeilnehmerEvent.teilnehmer_id == Teilnehmer.id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+    )
+
+    if von:
+        query = query.filter(Event.datum >= von)
+    if bis:
+        query = query.filter(Event.datum <= bis)
+
+    # Du brauchst JOIN auf Event für Datum
+    query = query.join(Event, Event.id == TeilnehmerEvent.event_id)
+
+    query = query.group_by(Teilnehmer.id).order_by(Teilnehmer.name)
+    teilnehmerdaten = query.all()
+
+    umsatz_summe = sum([row.umsatz for row in teilnehmerdaten]) if teilnehmerdaten else 0
+
+    return render_template(
+        "umsatz_teilnehmer_detail.html",
+        teilnehmerdaten=teilnehmerdaten,
+        umsatz_summe=umsatz_summe
+    )
+@app.route("/auswertung/umsatz_jahr", methods=["GET"])
+def auswertung_umsatz_jahr():
+    von = request.args.get("von")
+    bis = request.args.get("bis")
+
+    query = (
+        db.session.query(
+            func.strftime('%Y', Event.datum).label("jahr"),
+            func.sum(Verkauf.menge * Getraenk.preis).label("umsatz")
+        )
+        .join(TeilnehmerEvent, TeilnehmerEvent.event_id == Event.id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+    )
+
+    if von:
+        query = query.filter(Event.datum >= von)
+    if bis:
+        query = query.filter(Event.datum <= bis)
+
+    query = query.group_by("jahr").order_by("jahr")
+    jahresdaten = query.all()
+
+    umsatz_summe = sum([row.umsatz for row in jahresdaten]) if jahresdaten else 0
+
+    return render_template(
+        "umsatz_jahr_detail.html",
+        jahresdaten=jahresdaten,
+        umsatz_summe=umsatz_summe
+    )
+@app.route("/auswertung/getraenkestatistik", methods=["GET"])
+def auswertung_getraenkestatistik():
+    von = request.args.get("von")
+    bis = request.args.get("bis")
+
+    query = (
+        db.session.query(
+            Getraenk.name,
+            func.sum(Verkauf.menge).label("menge"),
+            func.sum(Verkauf.menge * Getraenk.preis).label("umsatz")
+        )
+        .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+        .join(TeilnehmerEvent, TeilnehmerEvent.id == Verkauf.teilnehmer_event_id)
+        .join(Event, Event.id == TeilnehmerEvent.event_id)
+    )
+
+    if von:
+        query = query.filter(Event.datum >= von)
+    if bis:
+        query = query.filter(Event.datum <= bis)
+
+    query = query.group_by(Getraenk.id).order_by(Getraenk.name)
+    getraenkedaten = query.all()
+
+    umsatz_summe = sum([row.umsatz for row in getraenkedaten]) if getraenkedaten else 0
+
+    return render_template(
+        "getraenkestatistik_detail.html",
+        getraenkedaten=getraenkedaten,
+        umsatz_summe=umsatz_summe
+    )
+# Verbrauch pro Teilnehmer
+@app.route("/auswertung/verbrauch_teilnehmer", methods=["GET"])
+def auswertung_verbrauch_teilnehmer():
+    von = request.args.get("von")
+    bis = request.args.get("bis")
+
+    query = (
+        db.session.query(
+            Teilnehmer.name,
+            func.sum(Verkauf.menge).label("menge"),
+            func.sum(Verkauf.menge * Getraenk.preis).label("betrag")
+        )
+        .join(TeilnehmerEvent, TeilnehmerEvent.teilnehmer_id == Teilnehmer.id)
+        .join(Verkauf, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+        .join(Getraenk, Verkauf.getraenk_id == Getraenk.id)
+        .join(Event, Event.id == TeilnehmerEvent.event_id)
+    )
+
+    if von:
+        query = query.filter(Event.datum >= von)
+    if bis:
+        query = query.filter(Event.datum <= bis)
+
+    query = query.group_by(Teilnehmer.id).order_by(Teilnehmer.name)
+    verbrauchsdaten = query.all()
+
+    gesamt_summe = sum([row.betrag for row in verbrauchsdaten]) if verbrauchsdaten else 0
+
+    return render_template(
+        "verbrauch_teilnehmer_detail.html",
+        verbrauchsdaten=verbrauchsdaten,
+        gesamt_summe=gesamt_summe
+    )
+
+
+# Teilnehmerliste
+@app.route("/auswertung/teilnehmerliste", methods=["GET"])
+def auswertung_teilnehmerliste():
+    daten = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    return render_template("teilnehmerliste_detail.html", teilnehmerliste=daten)
+
+
+# Einzelabrechnung
+@app.route("/auswertung/einzelabrechnung", methods=["GET"])
+def auswertung_einzelabrechnung():
+    teilnehmerliste = Teilnehmer.query.order_by(Teilnehmer.name).all()
+    eventliste = Event.query.order_by(Event.datum.desc()).all()
+
+    teilnehmer_id = request.args.get("teilnehmer_id", type=int)
+    event_id = request.args.get("event_id", type=int)
+
+    abrechnungsdaten = []
+    abrechnung_summe = 0
+
+    if teilnehmer_id and event_id:
+        query = (
+            db.session.query(
+                Getraenk.name,
+                func.sum(Verkauf.menge).label("menge"),
+                func.sum(Verkauf.menge * Getraenk.preis).label("betrag")
+            )
+            .join(Verkauf, Verkauf.getraenk_id == Getraenk.id)
+            .join(TeilnehmerEvent, Verkauf.teilnehmer_event_id == TeilnehmerEvent.id)
+            .filter(TeilnehmerEvent.teilnehmer_id == teilnehmer_id)
+            .filter(TeilnehmerEvent.event_id == event_id)
+            .group_by(Getraenk.id)
+        )
+
+        abrechnungsdaten = query.all()
+        abrechnung_summe = sum([row.betrag for row in abrechnungsdaten]) if abrechnungsdaten else 0
+
+    return render_template(
+        "einzelabrechnung_detail.html",
+        teilnehmerliste=teilnehmerliste,
+        eventliste=eventliste,
+        abrechnungsdaten=abrechnungsdaten,
+        abrechnung_summe=abrechnung_summe
+    )
+@app.route('/update_status/<int:teilnehmer_event_id>', methods=['POST'])
+def update_status(teilnehmer_event_id):
+    teilnehmer_event = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
+    status = request.form.get('bezahlt_status')
+    passwort = request.form.get('passwort')
+
+    if passwort == "1818" and status in ["offen", "twint", "bar", "schulden"]:
+        teilnehmer_event.bezahlt_status = status
+        db.session.commit()
+
+    return redirect(request.referrer or url_for('index'))
 @app.route("/verkauf/<int:teilnehmer_event_id>", methods=["GET", "POST"])
 def verkauf(teilnehmer_event_id):
     eintrag = TeilnehmerEvent.query.get_or_404(teilnehmer_event_id)
     getraenke = Getraenk.query.order_by(Getraenk.kategorie, Getraenk.name).all()
+
+    # 📌 NEU → Event-ID speichern
+    event_id = eintrag.event_id
 
     if request.method == "POST":
         getraenk_id = int(request.form["getraenk_id"])
@@ -1564,27 +1576,7 @@ def verkauf(teilnehmer_event_id):
         eintrag=eintrag,
         getraenke=getraenke,
         verkaufe=verkaufe,
-        gesamtbetrag=gesamtbetrag
+        gesamtbetrag=gesamtbetrag,
+        back_url=url_for("event_start") + f"?event_id={event_id}",
+        now=datetime.now()  # ✅ FIX HIER!
     )
-
-@app.route("/verkauf/loeschen/<int:verkauf_id>", methods=["POST"])
-def delete_verkauf(verkauf_id):
-    passwort = request.form.get("passwort")
-    if passwort != "1818":
-        return "Falsches Passwort!", 403
-
-    menge_zum_loeschen = int(request.form.get("menge", 0))
-    if menge_zum_loeschen <= 0:
-        return "Ungültige Menge!", 400
-
-    verkauf = Verkauf.query.get_or_404(verkauf_id)
-
-    if verkauf.menge > menge_zum_loeschen:
-        verkauf.menge -= menge_zum_loeschen
-        db.session.commit()
-    else:
-        db.session.delete(verkauf)
-        db.session.commit()
-
-    return redirect(request.referrer or url_for("index"))
-

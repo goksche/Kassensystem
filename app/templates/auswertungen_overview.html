@@ -15,73 +15,79 @@
       <a href="/events/dashboard" class="hover:underline">Events</a>
       <a href="/teilnehmer/neu" class="hover:underline">Teilnehmer</a>
       <a href="/getraenk" class="hover:underline">Getränke</a>
-      <a href="/auswertungen" class="hover:underline">Auswertungen</a>
+      <a href="/auswertungen" class="underline">Auswertungen</a>
     </div>
   </nav>
 
   <!-- Inhalt -->
-  <main class="flex-1 flex flex-col items-center justify-start p-8">
-    <h1 class="text-3xl font-bold mb-8">📊 Auswertungen Übersicht</h1>
+  <main class="flex-1 flex flex-col items-center justify-start p-8 w-full max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4 text-center">📊 Auswertungen</h1>
+    <p class="mb-10 text-gray-400 text-center">Hier findest du alle Auswertungen und Statistiken rund um deinen Barbetrieb.</p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full">
       <!-- Umsatz pro Event -->
       <a href="/auswertung/umsatz_event"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">💰 Umsatz pro Event</h2>
-        <p class="text-gray-400">Zeigt den Gesamtumsatz pro Anlass.</p>
+        <p class="text-gray-400">Zeigt, wie viel Umsatz jedes Event gemacht hat.</p>
       </a>
 
       <!-- Umsatz pro Jahr -->
       <a href="/auswertung/umsatz_jahr"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">📅 Umsatz pro Jahr</h2>
-        <p class="text-gray-400">Zeigt den Gesamtumsatz aller Jahre.</p>
+        <p class="text-gray-400">Gesamtumsatz im Jahresvergleich.</p>
       </a>
 
       <!-- Umsatz pro Teilnehmer -->
       <a href="/auswertung/umsatz_teilnehmer"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">🧑‍🤝‍🧑 Umsatz pro Teilnehmer</h2>
-        <p class="text-gray-400">Welcher Teilnehmer hat wie viel konsumiert?</p>
+        <p class="text-gray-400">Wer hat wie viel konsumiert?</p>
       </a>
 
       <!-- Getränkestatistik -->
       <a href="/auswertung/getraenkestatistik"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">🍻 Getränkestatistik</h2>
-        <p class="text-gray-400">Welches Getränk wurde wie oft verkauft?</p>
+        <p class="text-gray-400">Beliebteste Getränke im Überblick.</p>
       </a>
 
       <!-- Verbrauch pro Teilnehmer -->
-      <a href="/auswertung/verbrauch_pro_teilnehmer"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+      <a href="/auswertung/verbrauch_teilnehmer"
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">📈 Verbrauch pro Teilnehmer</h2>
-        <p class="text-gray-400">Verbrauch detailliert pro Event und Jahr.</p>
+        <p class="text-gray-400">Detaillierter Verbrauch nach Person.</p>
       </a>
 
       <!-- Teilnehmerliste -->
       <a href="/auswertung/teilnehmerliste"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">📋 Teilnehmerliste</h2>
         <p class="text-gray-400">Alle erfassten Teilnehmer im Überblick.</p>
       </a>
 
       <!-- Einzelabrechnung -->
-      <a href="/auswertung/einzelabrechnung_event"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+      <a href="/auswertung/einzelabrechnung"
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">🧾 Einzelabrechnung</h2>
-        <p class="text-gray-400">Einzelabrechnung je Event und Teilnehmer.</p>
+        <p class="text-gray-400">Abrechnung pro Person & Event.</p>
       </a>
 
       <!-- Endabrechnung -->
-      <a href="/auswertung/endabrechnung_event"
-         class="block bg-gray-800 p-6 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+      <a href="/auswertung/endabrechnung"
+         class="block bg-gray-800 p-6 rounded-2xl shadow hover:bg-gray-700 transition">
         <h2 class="text-xl font-bold mb-2">💼 Endabrechnung</h2>
-        <p class="text-gray-400">Vergleicht Einnahmen, Ausgaben & Gewinn.</p>
+        <p class="text-gray-400">Übersicht Einnahmen, Ausgaben & Gewinn.</p>
       </a>
 
+      <!-- Platzhalter -->
+      <div class="block bg-gray-800 p-6 rounded-2xl shadow text-gray-500">
+        <h2 class="text-xl font-bold mb-2">✨ Bald mehr</h2>
+        <p class="text-gray-400">Weitere Auswertungen folgen ...</p>
+      </div>
     </div>
   </main>
+
 </body>
 </html>
